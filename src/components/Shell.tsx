@@ -1,0 +1,133 @@
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { LayoutDashboard, Map, Sparkles, CalendarDays, Gauge, ListChecks, NotebookPen, Settings, Code2, Menu, X, Flame } from 'lucide-react'
+import { useApp } from '@/store/useApp'
+import { levelFromXp, rankTitle } from '@/lib/xp'
+import Background from './Background'
+import SystemMessages from './SystemMessages'
+import { Bar, RankBadge, cx } from './ui'
+
+const NAV = [
+  { to: '/', label: 'Status', icon: LayoutDashboard, jp: '状態' },
+  { to: '/gates', label: 'Gates', icon: Map, jp: '門' },
+  { to: '/patterns', label: 'Patterns', icon: Sparkles, jp: '型' },
+  { to: '/calendar', label: 'Calendar', icon: CalendarDays, jp: '暦' },
+  { to: '/trainer', label: 'Trainer', icon: Gauge, jp: '鍛' },
+  { to: '/problems', label: 'Problems', icon: ListChecks, jp: '題' },
+  { to: '/log', label: 'Mistake log', icon: NotebookPen, jp: '記' },
+  { to: '/scratchpad', label: 'Scratchpad', icon: Code2, jp: '書' },
+  { to: '/settings', label: 'Settings', icon: Settings, jp: '設' },
+]
+
+export default function Shell() {
+  const profile = useApp((s) => s.profile)
+  const totalXp = useApp((s) => s.totalXp)
+  const streak = useApp((s) => s.streak)
+  const ensureToday = useApp((s) => s.ensureToday)
+  const [open, setOpen] = useState(false)
+  const loc = useLocation()
+  const info = levelFromXp(totalXp)
+
+  useEffect(() => {
+    ensureToday()
+    const id = setInterval(ensureToday, 60_000)
+    return () => clearInterval(id)
+  }, [ensureToday])
+
+  useEffect(() => {
+    setOpen(false)
+    window.scrollTo({ top: 0 })
+  }, [loc.pathname])
+
+  return (
+    <div className="grain min-h-full">
+      <div className="aurora" />
+      <Background />
+
+      {/* Sidebar */}
+      <aside
+        className={cx(
+          'fixed z-40 top-0 left-0 h-full w-[var(--nav-w)] border-r border-[var(--line)] bg-[rgba(5,7,10,0.72)] backdrop-blur-xl flex flex-col transition-transform duration-500',
+          open ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+        )}
+        style={{ transitionTimingFunction: 'cubic-bezier(0.16,1,0.3,1)' }}
+      >
+        <div className="px-5 pt-6 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 grid place-items-center rounded-lg border border-[rgba(77,163,255,0.45)] bg-[rgba(77,163,255,0.08)] text-system text-glow font-jp text-lg">
+              影
+            </div>
+            <div>
+              <div className="display text-[20px] leading-none">The System</div>
+              <div className="eyebrow mt-1">DSA ascension</div>
+            </div>
+          </div>
+        </div>
+
+        <NavLink to="/" className="mx-4 panel panel-system px-3 py-3 flex items-center gap-3 hover:brightness-110 transition">
+          <RankBadge rank={info.rank} size={40} />
+          <div className="min-w-0 flex-1">
+            <div className="text-[13px] font-medium truncate">{profile.name}</div>
+            <div className="text-[11px] text-muted truncate">
+              Lv {info.level} · {rankTitle[info.rank]}
+            </div>
+            <Bar value={info.progress} className="mt-1.5" />
+          </div>
+        </NavLink>
+
+        <nav className="mt-5 px-3 flex-1 overflow-y-auto no-scrollbar">
+          {NAV.map((n) => (
+            <NavLink
+              key={n.to}
+              to={n.to}
+              end={n.to === '/'}
+              className={({ isActive }) =>
+                cx(
+                  'group flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] transition-all',
+                  isActive ? 'bg-[rgba(77,163,255,0.1)] text-bone' : 'text-bone-dim hover:text-bone hover:bg-[rgba(223,231,224,0.04)]',
+                )
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <n.icon size={16} className={cx('shrink-0', isActive ? 'text-system' : 'text-muted group-hover:text-bone-dim')} />
+                  <span className="flex-1">{n.label}</span>
+                  <span className="jp text-[10px] opacity-60">{n.jp}</span>
+                </>
+              )}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="px-5 py-4 border-t border-[var(--line)] flex items-center justify-between">
+          <div className="flex items-center gap-2 text-[12px] text-bone-dim">
+            <Flame size={14} className={streak.current > 0 ? 'text-ember' : 'text-muted'} />
+            <span>{streak.current} day streak</span>
+          </div>
+          <div className="text-[11px] text-muted">best {streak.best}</div>
+        </div>
+      </aside>
+
+      {open && <div className="fixed inset-0 z-30 bg-black/50 md:hidden" onClick={() => setOpen(false)} />}
+
+      {/* Top bar for mobile */}
+      <header className="md:hidden fixed top-0 inset-x-0 z-30 h-14 flex items-center justify-between px-4 border-b border-[var(--line)] bg-[rgba(5,7,10,0.8)] backdrop-blur-xl">
+        <div className="flex items-center gap-2">
+          <span className="font-jp text-system">影</span>
+          <span className="display text-lg">The System</span>
+        </div>
+        <button onClick={() => setOpen((o) => !o)} className="p-2 text-bone-dim">
+          {open ? <X size={20} /> : <Menu size={20} />}
+        </button>
+      </header>
+
+      <main className="relative z-10 md:pl-[var(--nav-w)] pt-14 md:pt-0 min-h-screen">
+        <div className="max-w-[1180px] mx-auto px-5 md:px-10 py-8 md:py-12">
+          <Outlet />
+        </div>
+      </main>
+
+      <SystemMessages />
+    </div>
+  )
+}
