@@ -208,6 +208,63 @@ textarea.input { min-height: 96px; resize: vertical; line-height: 1.55; }
 .code-block { background: rgba(5,7,10,0.75); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .code-block pre { margin: 0; padding: 14px 16px; overflow-x: auto; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6; color: #dfe7e0; }
 
+/* ---------- Reading mode ---------- */
+/* A completely still ground for pages where the eye must stay on a line of text. */
+.reading-backdrop { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: #06080c; }
+.reading-backdrop__glow {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(90% 55% at 50% -8%, rgba(77, 163, 255, 0.10), transparent 62%),
+    radial-gradient(70% 45% at 12% 8%, rgba(155, 123, 255, 0.05), transparent 70%);
+}
+.reading-backdrop__vignette {
+  position: absolute; inset: 0;
+  background: radial-gradient(120% 90% at 50% 40%, transparent 40%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* The text column sits on its own faint sheet so lines feel anchored. */
+.reading-sheet {
+  position: relative;
+  border-radius: 18px;
+}
+.reading-sheet::before {
+  content: ""; position: absolute; inset: -24px -40px; border-radius: 28px; z-index: -1; pointer-events: none;
+  background: linear-gradient(180deg, rgba(20, 27, 37, 0.5), rgba(12, 17, 24, 0.22) 55%, transparent 92%);
+  mask-image: radial-gradient(120% 100% at 50% 0%, #000 55%, transparent 100%);
+  -webkit-mask-image: radial-gradient(120% 100% at 50% 0%, #000 55%, transparent 100%);
+}
+
+.reading-progress {
+  position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 50; transform-origin: 0 50%;
+  background: linear-gradient(90deg, #2f7fe0, #4da3ff 55%, #9ad2ff);
+  box-shadow: 0 0 14px rgba(77, 163, 255, 0.7);
+}
+@media (min-width: 768px) { .reading-progress { left: var(--nav-w); } }
+.focus-mode .reading-progress { left: 0; }
+
+/* Focus mode: the sidebar and the mobile bar are moved out by the shell itself. */
+
+/* Paragraph rhythm tuned for tired evening reading. */
+.prose-sys { max-width: 68ch; }
+.prose-sys p, .prose-sys li { letter-spacing: 0.003em; }
+.prose-sys h2 { scroll-margin-top: 90px; }
+.prose-sys h2::before {
+  content: ""; display: block; width: 26px; height: 1px; margin-bottom: 14px;
+  background: linear-gradient(90deg, var(--color-system), transparent);
+}
+
+/* A solved problem gets one quiet pulse, not a firework. */
+@keyframes solved-ring {
+  0% { box-shadow: 0 0 0 0 rgba(95, 212, 162, 0.5); }
+  100% { box-shadow: 0 0 0 14px rgba(95, 212, 162, 0); }
+}
+.solved-ring { animation: solved-ring 900ms var(--ease-out-expo); }
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora, .glow-pulse, .cue, .system-scan::after { animation: none !important; }
+  .reading-progress { transition: none; }
+}
+
 /* ---------- Misc ---------- */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }

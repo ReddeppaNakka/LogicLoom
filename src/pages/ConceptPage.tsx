@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useParams, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Check, X, ExternalLink, CalendarClock, ArrowRight, ArrowLeft, Lightbulb, NotebookPen, ChevronDown } from 'lucide-react'
+import { Check, X, ExternalLink, CalendarClock, ArrowRight, ArrowLeft, Lightbulb, NotebookPen, ChevronDown, Maximize2, Minimize2 } from 'lucide-react'
 import { useApp } from '@/store/useApp'
 import { getConcept, getGate, getPattern, nextConceptAfter, concepts } from '@/lib/content'
 import { addDaysKey, nextStudyDay, prettyDate, todayKey } from '@/lib/dates'
 import Markdown from '@/components/Markdown'
 import CodeTabs from '@/components/CodeTabs'
+import ReadingProgress from '@/components/ReadingProgress'
+import Reveal from '@/components/Reveal'
 import { Panel, Eyebrow, Chip, Kanji, cx, difficultyLabel } from '@/components/ui'
 import type { Problem } from '@/content/types'
 
@@ -21,6 +23,8 @@ export default function ConceptPage() {
   const markLearned = useApp((s) => s.markConceptLearned)
   const schedule = useApp((s) => s.scheduleConcept)
   const studyDays = useApp((s) => s.profile.studyDays)
+  const focusMode = useApp((s) => s.focusMode)
+  const toggleFocus = useApp((s) => s.toggleFocusMode)
   const [picking, setPicking] = useState(false)
 
   useEffect(() => {
@@ -43,12 +47,16 @@ export default function ConceptPage() {
   const today = todayKey()
 
   return (
-    <div className="max-w-[860px]">
+    <div className="max-w-[860px] mx-auto">
+      <ReadingProgress />
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <Link to={`/gates/${gate.id}`} className="text-[12px] text-muted hover:text-bone">
           ← {gate.codename}
         </Link>
         <div className="flex items-center gap-2">
+          <button className="btn btn-xs btn-ghost" onClick={toggleFocus} title="Hide everything except the page">
+            {focusMode ? <Minimize2 size={12} /> : <Maximize2 size={12} />} {focusMode ? 'Exit focus' : 'Focus mode'}
+          </button>
           <button className="btn btn-xs btn-ghost" onClick={() => setPicking((p) => !p)}>
             <CalendarClock size={12} /> Schedule for another day
           </button>
@@ -98,32 +106,48 @@ export default function ConceptPage() {
       </motion.header>
 
       {/* Analogy */}
-      <Panel variant="system" corner className="p-5 mb-8">
-        <div className="flex items-center gap-2 mb-2">
-          <Lightbulb size={14} className="text-system" />
-          <Eyebrow system>Think of it like this</Eyebrow>
-        </div>
-        <p className="text-[15px] leading-relaxed text-bone">{c.analogy}</p>
-      </Panel>
+      <Reveal>
+        <Panel variant="system" corner className="p-5 mb-8">
+          <div className="flex items-center gap-2 mb-2">
+            <Lightbulb size={14} className="text-system" />
+            <Eyebrow system>Think of it like this</Eyebrow>
+          </div>
+          <p className="text-[15px] leading-relaxed text-bone">{c.analogy}</p>
+        </Panel>
+      </Reveal>
 
-      <Markdown>{c.explanation}</Markdown>
+      <div className="reading-sheet">
+        <Markdown>{c.explanation}</Markdown>
+      </div>
 
       {/* Naive vs optimized */}
       {(c.naive || c.optimized) && (
         <section className="mt-10">
-          <div className="flex items-center gap-3 mb-4">
-            <Eyebrow system>Slow way vs fast way</Eyebrow>
-            <Kanji>速</Kanji>
-          </div>
+          <Reveal>
+            <div className="flex items-center gap-3 mb-4">
+              <Eyebrow system>Slow way vs fast way</Eyebrow>
+              <Kanji>速</Kanji>
+            </div>
+          </Reveal>
           <div className="space-y-5">
-            {c.naive && <Approach a={c.naive} tone="ember" label="Naive" />}
-            {c.optimized && <Approach a={c.optimized} tone="jade" label="Optimized" />}
+            {c.naive && (
+              <Reveal>
+                <Approach a={c.naive} tone="ember" label="Naive" />
+              </Reveal>
+            )}
+            {c.optimized && (
+              <Reveal>
+                <Approach a={c.optimized} tone="jade" label="Optimized" />
+              </Reveal>
+            )}
           </div>
           {c.whyFaster && (
-            <Panel className="p-5 mt-5">
-              <Eyebrow className="mb-2">Why the fast way wins</Eyebrow>
-              <p className="text-[14.5px] text-bone-dim leading-relaxed">{c.whyFaster}</p>
-            </Panel>
+            <Reveal>
+              <Panel className="p-5 mt-5">
+                <Eyebrow className="mb-2">Why the fast way wins</Eyebrow>
+                <p className="text-[14.5px] text-bone-dim leading-relaxed">{c.whyFaster}</p>
+              </Panel>
+            </Reveal>
           )}
         </section>
       )}
@@ -133,10 +157,12 @@ export default function ConceptPage() {
         <Eyebrow system className="mb-3">Remember</Eyebrow>
         <ul className="grid sm:grid-cols-2 gap-3">
           {c.keyPoints.map((k, i) => (
-            <li key={i} className="panel px-4 py-3 text-[13.5px] text-bone-dim flex gap-3">
-              <span className="mono text-system">{String(i + 1).padStart(2, '0')}</span>
-              <span>{k}</span>
-            </li>
+            <Reveal key={i} delay={i * 0.05}>
+              <li className="panel px-4 py-3 text-[13.5px] text-bone-dim flex gap-3 h-full list-none">
+                <span className="mono text-system">{String(i + 1).padStart(2, '0')}</span>
+                <span>{k}</span>
+              </li>
+            </Reveal>
           ))}
         </ul>
       </section>
@@ -168,8 +194,10 @@ export default function ConceptPage() {
         </div>
         <p className="text-[13px] text-muted mb-4">Open the problem on LeetCode, try for 20 to 25 minutes, then record the result here. Solved problems come back for memory checks after 3, 7 and 21 days.</p>
         <div className="space-y-3">
-          {c.problems.map((p) => (
-            <ProblemRow key={p.id} p={p} />
+          {c.problems.map((p, i) => (
+            <Reveal key={p.id} delay={Math.min(i, 5) * 0.05}>
+              <ProblemRow p={p} />
+            </Reveal>
           ))}
         </div>
       </section>
@@ -230,9 +258,18 @@ export function ProblemRow({ p, showConcept }: { p: Problem & { conceptIds?: str
   return (
     <Panel id={`p-${p.id}`} className={cx('p-4', solved && 'border-[rgba(95,212,162,0.3)]', failed && 'border-[rgba(255,90,60,0.35)]')}>
       <div className="flex items-start gap-3">
-        <div className={cx('w-8 h-8 rounded-lg grid place-items-center border shrink-0 mt-0.5', solved ? 'border-[rgba(95,212,162,0.4)] text-jade' : failed ? 'border-[rgba(255,90,60,0.4)] text-ember' : 'border-[var(--line)] text-muted')}>
+        <motion.div
+          key={solved ? 'solved' : failed ? 'failed' : 'new'}
+          initial={{ scale: 0.7 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 320, damping: 18 }}
+          className={cx(
+            'w-8 h-8 rounded-lg grid place-items-center border shrink-0 mt-0.5',
+            solved ? 'border-[rgba(95,212,162,0.4)] text-jade solved-ring' : failed ? 'border-[rgba(255,90,60,0.4)] text-ember' : 'border-[var(--line)] text-muted',
+          )}
+        >
           {solved ? <Check size={14} /> : failed ? <X size={14} /> : <span className="mono text-[10px]">?</span>}
-        </div>
+        </motion.div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <a href={p.url} target="_blank" rel="noreferrer" className="text-[15px] font-medium hover:text-system transition-colors">

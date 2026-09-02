@@ -3,6 +3,8 @@ import { motion } from 'framer-motion'
 import { getPattern, getGate, getProblem, problemsOfPattern } from '@/lib/content'
 import Markdown from '@/components/Markdown'
 import CodeTabs from '@/components/CodeTabs'
+import ReadingProgress from '@/components/ReadingProgress'
+import Reveal from '@/components/Reveal'
 import { Panel, Eyebrow, Kanji } from '@/components/ui'
 import { ProblemRow } from './ConceptPage'
 
@@ -15,7 +17,8 @@ export default function PatternDetail() {
   const all = [...examples, ...more] as NonNullable<ReturnType<typeof getProblem>>[]
 
   return (
-    <div className="max-w-[860px]">
+    <div className="max-w-[860px] mx-auto">
+      <ReadingProgress />
       <Link to="/patterns" className="text-[12px] text-muted hover:text-bone">
         ← Pattern library
       </Link>
@@ -62,12 +65,16 @@ export default function PatternDetail() {
         </Panel>
       </div>
 
-      <Markdown>{p.explanation}</Markdown>
+      <div className="reading-sheet">
+        <Markdown>{p.explanation}</Markdown>
+      </div>
 
-      <section className="mt-10">
-        <Eyebrow system className="mb-3">Template · copy and adapt</Eyebrow>
-        <CodeTabs code={p.template} />
-      </section>
+      <Reveal>
+        <section className="mt-10">
+          <Eyebrow system className="mb-3">Template · copy and adapt</Eyebrow>
+          <CodeTabs code={p.template} />
+        </section>
+      </Reveal>
 
       {all.length > 0 && (
         <section className="mt-12">
@@ -76,8 +83,10 @@ export default function PatternDetail() {
             <Kanji>題</Kanji>
           </div>
           <div className="space-y-3">
-            {all.map((pr) => (
-              <ProblemRow key={pr.id} p={pr} showConcept />
+            {all.map((pr, i) => (
+              <Reveal key={pr.id} delay={Math.min(i, 5) * 0.05}>
+                <ProblemRow p={pr} showConcept />
+              </Reveal>
             ))}
           </div>
         </section>

@@ -1,11 +1,23 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { LayoutDashboard, Map, Sparkles, CalendarDays, Gauge, ListChecks, NotebookPen, Settings, Code2, Menu, X, Flame } from 'lucide-react'
+import { LayoutDashboard, Map, Sparkles, CalendarDays, Gauge, ListChecks, NotebookPen, Settings, Code2, Menu, X, Flame, Minimize2 } from 'lucide-react'
 import { useApp } from '@/store/useApp'
 import { levelFromXp, rankTitle } from '@/lib/xp'
 import Background from './Background'
+import ReadingBackdrop from './ReadingBackdrop'
 import SystemMessages from './SystemMessages'
 import { Bar, RankBadge, cx } from './ui'
+
+/**
+ * Pages where the eye must stay still: long-form reading, timed practice and
+ * code. These drop the particle field and the drifting aurora entirely.
+ */
+export const isCalmRoute = (pathname: string) =>
+  pathname.startsWith('/learn/') ||
+  pathname.startsWith('/boss/') ||
+  pathname === '/trainer' ||
+  pathname === '/scratchpad' ||
+  (pathname.startsWith('/patterns/') && pathname.length > '/patterns/'.length)
 
 const NAV = [
   { to: '/', label: 'Status', icon: LayoutDashboard, jp: '状態' },
@@ -24,9 +36,12 @@ export default function Shell() {
   const totalXp = useApp((s) => s.totalXp)
   const streak = useApp((s) => s.streak)
   const ensureToday = useApp((s) => s.ensureToday)
+  const focusMode = useApp((s) => s.focusMode)
   const [open, setOpen] = useState(false)
   const loc = useLocation()
   const info = levelFromXp(totalXp)
+  const calm = isCalmRoute(loc.pathname)
+  const hasOwnFocusToggle = loc.pathname.startsWith('/learn/') || loc.pathname.startsWith('/patterns/')
 
   useEffect(() => {
     ensureToday()
@@ -40,15 +55,21 @@ export default function Shell() {
   }, [loc.pathname])
 
   return (
-    <div className="grain min-h-full">
-      <div className="aurora" />
-      <Background />
+    <div className={cx('min-h-full', !calm && 'grain', calm && focusMode && 'focus-mode')}>
+      {calm ? (
+        <ReadingBackdrop />
+      ) : (
+        <>
+          <div className="aurora" />
+          <Background />
+        </>
+      )}
 
       {/* Sidebar */}
       <aside
         className={cx(
           'fixed z-40 top-0 left-0 h-full w-[var(--nav-w)] border-r border-[var(--line)] bg-[rgba(5,7,10,0.72)] backdrop-blur-xl flex flex-col transition-transform duration-500',
-          open ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+          calm && focusMode ? '-translate-x-full' : open ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
         )}
         style={{ transitionTimingFunction: 'cubic-bezier(0.16,1,0.3,1)' }}
       >
@@ -111,7 +132,7 @@ export default function Shell() {
       {open && <div className="fixed inset-0 z-30 bg-black/50 md:hidden" onClick={() => setOpen(false)} />}
 
       {/* Top bar for mobile */}
-      <header className="md:hidden fixed top-0 inset-x-0 z-30 h-14 flex items-center justify-between px-4 border-b border-[var(--line)] bg-[rgba(5,7,10,0.8)] backdrop-blur-xl">
+      <header className={cx('md:hidden fixed top-0 inset-x-0 z-30 h-14 flex items-center justify-between px-4 border-b border-[var(--line)] bg-[rgba(5,7,10,0.8)] backdrop-blur-xl', calm && focusMode && 'hidden')}>
         <div className="flex items-center gap-2">
           <span className="font-jp text-system">影</span>
           <span className="display text-lg">The System</span>
@@ -121,11 +142,22 @@ export default function Shell() {
         </button>
       </header>
 
-      <main className="relative z-10 md:pl-[var(--nav-w)] pt-14 md:pt-0 min-h-screen">
+      <main className={cx('relative z-10 pt-14 md:pt-0 min-h-screen', !(calm && focusMode) && 'md:pl-[var(--nav-w)]')}>
         <div className="max-w-[1180px] mx-auto px-5 md:px-10 py-8 md:py-12">
           <Outlet />
         </div>
       </main>
+
+      {/* Fallback exit for calm pages that carry no toggle of their own. */}
+      {calm && focusMode && !hasOwnFocusToggle && (
+        <button
+          onClick={() => useApp.getState().toggleFocusMode()}
+          className="fixed top-4 left-4 z-50 btn btn-xs btn-ghost text-muted hover:text-bone"
+          title="Leave focus mode"
+        >
+          <Minimize2 size={13} /> Exit focus
+        </button>
+      )}
 
       <SystemMessages />
     </div>

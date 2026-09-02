@@ -47,6 +47,10 @@ interface Actions {
   dismissMessage: (id: string) => void
   pushMessage: (m: Omit<SystemMessage, 'id'>) => void
 
+  /** Distraction-free reading: hides the sidebar and widens the margins. */
+  focusMode: boolean
+  toggleFocusMode: () => void
+
   completeOnboarding: (p: Partial<Profile>) => void
   updateProfile: (p: Partial<Profile>) => void
   setLang: (l: Lang) => void
@@ -116,7 +120,9 @@ export const useApp = create<AppState>()(
     (set, get) => ({
       ...initialPersisted,
       messages: [],
+      focusMode: false,
 
+      toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
       dismissMessage: (id) => set((s) => ({ messages: s.messages.filter((m) => m.id !== id) })),
       pushMessage: (m) => set((s) => ({ messages: [...s.messages, { ...m, id: uid() }] })),
 
