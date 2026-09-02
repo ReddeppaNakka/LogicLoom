@@ -53,7 +53,7 @@ export default function Calendar() {
       {view === 'week' ? (
         <Timetable />
       ) : (
-        <div className="grid lg:grid-cols-[1.5fr_1fr] gap-5">
+        <div className="grid lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] gap-5">
           <Panel className="p-4 md:p-5">
             <div className="flex items-center justify-between mb-4">
               <button className="btn btn-xs btn-ghost" onClick={() => setMonth((m) => addMonths(m, -1))}>

@@ -84,7 +84,7 @@ function Wizard() {
   }
 
   return (
-    <div className="grid lg:grid-cols-[1fr_360px] gap-5">
+    <div className="grid lg:grid-cols-[minmax(0,1fr)_360px] gap-5">
       <Panel variant="system" corner className="p-6 min-h-[360px]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

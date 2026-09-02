@@ -48,7 +48,7 @@ export default function Dashboard() {
         <p className="text-bone-dim mt-2">{prettyLong(today)} · {study ? (light ? 'Light session' : 'Study day') : 'Rest day'}</p>
       </motion.div>
 
-      <div className="grid lg:grid-cols-[1.35fr_1fr] gap-5">
+      <div className="grid lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] gap-5">
         {/* Profile panel */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease, delay: 0.08 }}>
           <Panel variant="system" corner className="p-6 h-full">
@@ -126,7 +126,7 @@ export default function Dashboard() {
       )}
 
       {/* Today's quest */}
-      <div className="grid lg:grid-cols-[1.35fr_1fr] gap-5">
+      <div className="grid lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] gap-5">
         <div>
           <div className="flex items-end justify-between mb-4">
             <div>

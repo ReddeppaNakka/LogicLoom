@@ -44,7 +44,7 @@ export default function Log() {
 
       {adding && (
         <Panel variant="system" corner className="p-5 mb-6">
-          <div className="grid md:grid-cols-[1fr_220px] gap-3">
+          <div className="grid md:grid-cols-[minmax(0,1fr)_220px] gap-3">
             <input className="input" placeholder="Title, e.g. Missed the sorted-array clue" value={title} onChange={(e) => setTitle(e.target.value)} />
             <select className="input" value={pid} onChange={(e) => setPid(e.target.value)}>
               <option value="">Pattern (optional)</option>
@@ -77,7 +77,7 @@ export default function Log() {
         </Panel>
       )}
 
-      <div className="grid lg:grid-cols-[1fr_280px] gap-5">
+      <div className="grid lg:grid-cols-[minmax(0,1fr)_280px] gap-5">
         <div>
           <div className="flex gap-2 mb-4">
             <div className="relative flex-1">

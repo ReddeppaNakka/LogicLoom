@@ -59,7 +59,7 @@ export default function Trainer() {
       <SectionTitle eyebrow="Complexity trainer" kanji="鍛" title="Read code. Feel the cost." />
       <p className="text-bone-dim max-w-2xl -mt-2 mb-6">Five questions per drill. Look at the loops, the halving, the recursion, and guess the Big-O. The explanation after each answer is where the real learning happens.</p>
 
-      <div className="grid lg:grid-cols-[1fr_300px] gap-5">
+      <div className="grid lg:grid-cols-[minmax(0,1fr)_300px] gap-5">
         <Panel variant="system" corner className="p-6 min-h-[420px]">
           <AnimatePresence mode="wait">
             {finished ? (

@@ -35,8 +35,8 @@ export default function GateDetail() {
       </div>
       <p className="text-bone-dim max-w-2xl mb-8">{gate.description}</p>
 
-      <div className="grid lg:grid-cols-[1.4fr_1fr] gap-6">
-        <div>
+      <div className="grid lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-6">
+        <div className="min-w-0">
           <Eyebrow className="mb-3">Concepts · {cs.filter((c) => progress[c.id]?.status === 'done').length}/{cs.length} learned</Eyebrow>
           <div className="space-y-3">
             {cs.map((c, i) => {
@@ -67,7 +67,7 @@ export default function GateDetail() {
           </div>
         </div>
 
-        <div className="space-y-5">
+        <div className="space-y-5 min-w-0">
           {gate.patternIds.length > 0 && (
             <Panel className="p-5">
               <div className="flex items-center justify-between mb-3">
@@ -98,10 +98,10 @@ export default function GateDetail() {
               {probs.map((p) => {
                 const st = attempts[p.id]?.status
                 return (
-                  <Link key={p.id} to={`/learn/${p.conceptIds[0]}#p-${p.id}`} className="flex items-center gap-2 text-[13px] py-1.5 border-b border-[var(--line-soft)] last:border-0">
+                  <Link key={p.id} to={`/learn/${p.conceptIds[0]}#p-${p.id}`} className="flex items-center gap-2 text-[13px] py-1.5 border-b border-[var(--line-soft)] last:border-0 min-w-0">
                     <span className={cx('w-1.5 h-1.5 rounded-full shrink-0', st === 'solved' ? 'bg-jade' : st === 'failed' ? 'bg-ember' : 'bg-[rgb(var(--fg-rgb)/0.2)]')} />
                     <span className={cx('flex-1 truncate', st === 'solved' && 'text-muted')}>{p.title}</span>
-                    <Chip tone={p.difficulty}>{difficultyLabel[p.difficulty]}</Chip>
+                    <Chip tone={p.difficulty} className="shrink-0">{difficultyLabel[p.difficulty]}</Chip>
                   </Link>
                 )
               })}

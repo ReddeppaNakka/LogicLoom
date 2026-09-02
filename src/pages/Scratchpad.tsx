@@ -138,7 +138,7 @@ export default function Scratchpad() {
       />
       <p className="text-bone-dim max-w-2xl -mt-2 mb-5">Paste a template, plug in a tiny input, and print what happens at each step. Watching the pointers move is the fastest way to understand a pattern. Java and C++ are read-only here, so use LeetCode's editor for those.</p>
 
-      <div className="grid lg:grid-cols-[1.4fr_1fr] gap-4">
+      <div className="grid lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-4">
         <Panel className="overflow-hidden">
           <Editor
             height="520px"
