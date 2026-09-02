@@ -410,6 +410,7 @@ function lowerBound(a, target):
         patternId: 'binary-search',
         hint: 'Inclusive lo and hi, loop while lo <= hi, and always move past mid.',
         xp: 20,
+        tier: 'beginner',
       },
       {
         id: 'search-insert-position',
@@ -419,6 +420,7 @@ function lowerBound(a, target):
         patternId: 'binary-search',
         hint: 'When the loop ends without a match, lo is exactly where the target would be inserted.',
         xp: 20,
+        tier: 'beginner',
       },
       {
         id: 'first-bad-version',
@@ -428,6 +430,7 @@ function lowerBound(a, target):
         patternId: 'binary-search',
         hint: 'Versions look like [good, good, bad, bad]; find the first bad by keeping hi on a bad version.',
         xp: 20,
+        tier: 'intermediate',
       },
       {
         id: 'sqrtx',
@@ -437,6 +440,7 @@ function lowerBound(a, target):
         patternId: 'binary-search',
         hint: 'Binary search the answer between 0 and x: find the largest m with m * m <= x.',
         xp: 20,
+        tier: 'intermediate',
       },
       {
         id: 'valid-perfect-square',
@@ -446,6 +450,7 @@ function lowerBound(a, target):
         patternId: 'binary-search',
         hint: 'Search 1..num for an m with m * m == num; use long arithmetic to avoid overflow.',
         xp: 20,
+        tier: 'intermediate',
       },
       {
         id: 'search-a-2d-matrix',
@@ -455,6 +460,7 @@ function lowerBound(a, target):
         patternId: 'binary-search',
         hint: 'Treat the matrix as one sorted list of rows * cols items; index i maps to row i / cols and column i % cols.',
         xp: 40,
+        tier: 'advanced',
       },
     ],
   },
@@ -715,6 +721,210 @@ int main() {
       'Rotated arrays: one half around mid is always sorted; check if the target lies in it.',
       'Binary search on the answer: search over a numeric answer with a monotonic feasible(x) check.',
     ],
+    definition:
+      'A family of binary searches that look for a boundary instead of an exact value: the first index, or the first candidate answer, where a yes/no test turns true. The range being searched may be a sorted array, a rotated sorted array, or an imaginary list of possible answers.',
+    coreIdea:
+      'Binary search does not actually need a sorted array. It needs a test that is false for a while along the range and then true forever after. Because the test never flips back, one probe in the middle proves which side the switch point is on, so half the range disappears. Any quantity whose feasibility is monotonic can be searched this way, even when the input itself has no order at all.',
+    visual: [
+      {
+        caption: 'Rewrite the question as a yes/no test on each index. For "first index with value >= 5" the pattern is F F T T T T.',
+        frame: [
+          'question: first i with a[i] >= 5',
+          '[  1  3  5  5  5  8 ]',
+          '   F  F  T  T  T  T   cond(i)',
+          '   L        M        H   lo=0 hi=6 mid=3',
+          'a[3] = 5, cond true  ->  hi = mid = 3',
+        ].join('\n'),
+      },
+      {
+        caption: 'hi = mid keeps index 3 in play, because index 3 might be the answer. The window is now the half-open range [0, 3).',
+        frame: [
+          '[  1  3  5  x  x  x ]',
+          '   F  F  T            cond(i)',
+          '   L  M     H         lo=0 hi=3 mid=1',
+          'a[1] = 3, cond false  ->  lo = mid + 1 = 2',
+        ].join('\n'),
+      },
+      {
+        caption: 'One cell left. The test is true, hi drops to 2, and lo == hi ends the loop on the first 5.',
+        frame: [
+          '[  x  x  5  x  x  x ]',
+          '         T            cond(i)',
+          '         L  H         lo=2 hi=3 mid=2',
+          'cond true  ->  hi = 2, now lo == hi, loop ends',
+          'lower bound of 5 = 2; lower bound of 6 = 5',
+          'so the last 5 sits at 5 - 1 = 4',
+        ].join('\n'),
+      },
+      {
+        caption: 'Rotated array: mid never tells you the direction on its own, but one side of mid is always a normal sorted run.',
+        frame: [
+          'find 0 in [ 4  5  6  7  0  1  2 ]',
+          'idx          0  1  2  3  4  5  6',
+          'mid = 3 -> value 7.  a[0]=4 <= a[3]=7,',
+          'so the left run 4..7 is properly sorted.',
+          '0 is not inside [4, 7]  ->  go right, lo = 4',
+        ].join('\n'),
+      },
+      {
+        caption: 'Search on the answer: the piles are unsorted, but "can Koko finish at speed k" is false then true forever.',
+        frame: [
+          'piles = [3, 6, 7, 11], limit h = 8 hours',
+          'k       1  2  3  4  5  6  7  8  9 10 11',
+          'hours  27 15 10  8  8  6  5  5  5  5  4',
+          'ok?     F  F  F  T  T  T  T  T  T  T  T',
+          '                 ^ first T, so the answer is k = 4',
+        ].join('\n'),
+      },
+    ],
+    pseudocode: `// first index in [lo, hi) where cond is true, or hi if none is
+function firstTrue(lo, hi, cond):
+    while lo < hi:
+        mid = lo + (hi - lo) / 2
+        if cond(mid):
+            hi = mid                 // mid may be the answer, keep it
+        else:
+            lo = mid + 1             // mid is not, so look right
+    return lo
+
+// first and last position of target in a sorted array
+function firstAndLast(a, target):
+    first = firstTrue(0, length(a), index -> a[index] >= target)
+    if first == length(a) or a[first] != target:
+        return (-1, -1)
+    last = firstTrue(0, length(a), index -> a[index] > target) - 1
+    return (first, last)
+
+// smallest x in [low, high] for which feasible(x) holds
+function searchTheAnswer(low, high, feasible):
+    while low < high:
+        mid = low + (high - low) / 2
+        if feasible(mid): high = mid
+        else: low = mid + 1
+    return low`,
+    complexity: [
+      { label: 'First and last occurrence', time: 'O(log n)', space: 'O(1)', note: 'two boundary searches, about 2 * log2(n) probes' },
+      { label: 'Rotated sorted array search', time: 'O(log n)', space: 'O(1)', note: 'degrades to O(n) when duplicates hide which half is sorted' },
+      { label: 'Search on the answer', time: 'O(C * log R)', space: 'O(1)', note: 'R is the size of the answer range, C is one feasible() check' },
+      { label: 'Recursive form of any variant', time: 'O(log n)', space: 'O(log n)', note: 'one stack frame per halving level' },
+    ],
+    dryRun: {
+      input: 'nums = [1, 3, 5, 5, 5, 8], target = 5',
+      goal: 'Return the first and last index of 5 using the optimized lower_bound and first_last above.',
+      steps: [
+        { state: 'target=5 lo=0 hi=6', action: 'lower_bound starts with the half-open window [0, 6). hi = 6 also encodes "maybe nothing qualifies".' },
+        { state: 'lo=0 hi=6 mid=3 nums[3]=5', action: '5 >= 5 is true, so index 3 qualifies but an earlier one might too. Set hi = mid = 3.' },
+        { state: 'lo=0 hi=3 mid=1 nums[1]=3', action: '3 >= 5 is false, so index 1 and everything left of it are out. Set lo = mid + 1 = 2.' },
+        { state: 'lo=2 hi=3 mid=2 nums[2]=5', action: '5 >= 5 is true again, so hi = mid = 2.' },
+        { state: 'lo=2 hi=2', action: 'lo is no longer less than hi, the loop ends, and lower_bound returns 2. So first = 2.' },
+        { state: 'first=2 nums[2]=5', action: 'nums[first] really is the target, so 5 is present and it is worth finding where the run ends.' },
+        { state: 'calling lower_bound(nums, 6)', action: 'The same walk probes index 3 (5 < 6, lo = 4), then index 5 (8 >= 6, hi = 5), then index 4 (5 < 6, lo = 5) and returns 5.' },
+        { state: 'first=2 upper=5', action: 'The first value greater than 5 sits at index 5, so the last 5 is one place before it: last = 5 - 1 = 4.' },
+      ],
+      result:
+        'Returns [2, 4]. That is correct because nums[2] through nums[4] are all 5, nums[1] is smaller and nums[5] is larger, so the run of 5s is exactly indexes 2 to 4.',
+    },
+    mistakes: [
+      {
+        mistake: 'Mixing the two templates, for example while lo <= hi together with hi = mid.',
+        why: 'With one cell left mid equals lo, so hi = mid changes nothing and the condition lo <= hi stays true forever. The program hangs.',
+        fix: 'Pick one shape and keep it whole. Closed window: hi = n - 1, lo <= hi, mid plus or minus one. Half-open: hi = n, lo < hi, hi = mid.',
+      },
+      {
+        mistake: 'Computing the last occurrence as upper_bound(target) rather than upper_bound(target) - 1.',
+        why: 'upper_bound is the first index strictly greater than the target, which is one place past the last match, so the answer is off by one or points at a different value.',
+        fix: 'last = lower_bound(target + 1) - 1, and only after checking that the target exists at all.',
+      },
+      {
+        mistake: 'Binary searching a feasible() function that is not monotonic.',
+        why: 'If the pattern is F T F T, a probe in the middle says nothing about which side holds the boundary, so the returned value is essentially arbitrary and may not even be feasible.',
+        fix: 'Prove monotonicity first: if speed k works, every speed above k must also work. If that fails, use a different technique.',
+      },
+      {
+        mistake: 'In a rotated array, choosing the direction by comparing nums[mid] with the target alone.',
+        why: 'The array is only sorted in pieces, so a plain comparison does not tell you which half can contain the target.',
+        fix: 'First decide which half is a sorted run by comparing nums[lo] with nums[mid], then test whether the target falls inside that run.',
+      },
+      {
+        mistake: 'Choosing too narrow a range for a search-on-answer problem.',
+        why: 'If the true answer sits outside [low, high], the loop still returns a boundary value, and that value was never actually feasible.',
+        fix: 'Start with a range that is obviously safe: for ship capacity that is max(weights) up to sum(weights); for eating speed it is 1 up to max(pile).',
+      },
+    ],
+    whenToUse: [
+      '"First position", "last position", or "how many times does x occur" in sorted data.',
+      '"Smallest or largest value such that ..." where testing one candidate is easy but the range of candidates is huge.',
+      'A rotated or shifted sorted array, or an array with exactly one peak.',
+      'A feasibility question where answering yes for x forces yes for everything above x.',
+      'Answer bounds up to 10^9 with an O(n) check, since log2(10^9) is only about 30 probes.',
+    ],
+    whenNotToUse: [
+      'The feasibility test flips between true and false more than once, so no single boundary exists; scan the range or use dynamic programming.',
+      'The data has no order and no monotonic property at all; sort it first or use a hash map.',
+      'You need the k-th smallest of an unsorted array in one go; quickselect gives O(n) average with no ordering assumption.',
+      'The candidate answers are not values you can halve, such as arbitrary strings or graph shapes; search the structure instead.',
+      'One feasible() check already costs O(n log n), so log R checks may be slower than a direct O(n log n) algorithm.',
+    ],
+    relatedTopics: [
+      { id: 'linear-vs-binary-search', kind: 'concept', why: 'This builds directly on the window and invariant taught there.' },
+      { id: 'binary-search-on-answer', kind: 'pattern', why: 'The "smallest feasible value" family is exactly this pattern.' },
+      { id: 'quick-sort', kind: 'concept', why: 'Quickselect answers k-th smallest questions without needing any order.' },
+      { id: 'greedy', kind: 'pattern', why: 'Most feasible() checks in search-on-answer problems are a single greedy sweep.' },
+    ],
+    quiz: [
+      {
+        question: 'For nums = [2, 2, 2, 2], what does lower_bound(nums, 3) return?',
+        options: ['0', '3', '4', '-1'],
+        answerIndex: 2,
+        explanation: 'No element is >= 3, so hi never comes down and lo climbs to n = 4, the signal that nothing qualifies.',
+      },
+      {
+        question: 'You need the smallest number of days d in which a task list can be finished, and you know 5 days is enough. Can you binary search d?',
+        options: [
+          'No, because days are not stored in a sorted array',
+          'Yes, because if d days work then d + 1 days also work, so feasibility is monotonic',
+          'Only if the task list is sorted first',
+          'Only if d is under 100',
+        ],
+        answerIndex: 1,
+        explanation: 'Binary search needs monotonic feasibility, not a sorted input. Extra days can never make a feasible schedule infeasible.',
+      },
+      {
+        question: 'Koko has n = 10^4 piles with up to 10^9 bananas each. What does binary searching the eating speed cost?',
+        options: ['O(n)', 'About O(n * log(max pile)), roughly 30 sweeps of 10^4 piles', 'O(n^2)', 'O(max pile)'],
+        answerIndex: 1,
+        explanation: 'Each candidate speed costs one O(n) sweep to add up the hours, and halving a range of 10^9 takes about 30 probes.',
+      },
+      {
+        question: 'In a rotated sorted array with mid anywhere in the middle, what is always true?',
+        options: [
+          'nums[mid] is the minimum',
+          'At least one of the two halves around mid is a normally sorted run',
+          'Both halves are sorted',
+          'The target is always in the left half',
+        ],
+        answerIndex: 1,
+        explanation: 'A single rotation creates one break point, and that break can only fall on one side of mid, so the other side is a clean sorted run.',
+      },
+      {
+        question: 'Why is the last occurrence written as lower_bound(target + 1) - 1 rather than lower_bound(target) plus the count of matches?',
+        options: [
+          'They are always the same',
+          'Because you cannot know the count without scanning, while the second boundary search is still O(log n)',
+          'Because lower_bound only works on unique values',
+          'To avoid integer overflow',
+        ],
+        answerIndex: 1,
+        explanation: 'Counting the matches would need an O(n) pass; a second boundary search keeps the whole operation logarithmic.',
+      },
+    ],
+    sources: [
+      'MIT 6.006: binary search and searching over answers',
+      'CLRS ch. 2 and ch. 4',
+      'CP-Algorithms: Binary search',
+      'USACO Guide: Binary Search on the Answer',
+      'Codeforces EDU (ITMO Academy): Binary Search',
+    ],
     patternIds: ['binary-search', 'binary-search-on-answer'],
     problems: [
       {
@@ -725,6 +935,7 @@ int main() {
         patternId: 'binary-search',
         hint: 'Run lower bound for target and for target + 1; the answer is [first, second - 1].',
         xp: 40,
+        tier: 'beginner',
       },
       {
         id: 'find-minimum-in-rotated-sorted-array',
@@ -734,6 +945,7 @@ int main() {
         patternId: 'binary-search',
         hint: 'Compare nums[mid] with nums[hi]: if mid is bigger, the minimum is to the right; otherwise it is at mid or left.',
         xp: 40,
+        tier: 'beginner',
       },
       {
         id: 'search-in-rotated-sorted-array',
@@ -743,6 +955,7 @@ int main() {
         patternId: 'binary-search',
         hint: 'Decide which side of mid is sorted, then check whether the target falls inside that sorted side.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'find-peak-element',
@@ -752,6 +965,7 @@ int main() {
         patternId: 'binary-search',
         hint: 'If nums[mid] < nums[mid + 1] a peak exists to the right; otherwise one exists at mid or to the left.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'koko-eating-bananas',
@@ -761,6 +975,7 @@ int main() {
         patternId: 'binary-search-on-answer',
         hint: 'Binary search the speed from 1 to max pile; feasible(k) sums ceil(pile / k) and checks it fits in h hours.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'capacity-to-ship-packages-within-d-days',
@@ -770,6 +985,7 @@ int main() {
         patternId: 'binary-search-on-answer',
         hint: 'Search capacity from max(weight) to sum(weights); feasible(c) greedily counts how many days are needed.',
         xp: 40,
+        tier: 'advanced',
       },
       {
         id: 'median-of-two-sorted-arrays',
@@ -779,6 +995,7 @@ int main() {
         patternId: 'binary-search',
         hint: 'Binary search how many elements to take from the shorter array so that the left halves of both together form the lower half.',
         xp: 80,
+        tier: 'advanced',
       },
     ],
   },
@@ -1019,6 +1236,230 @@ int main() {
       'Cyclic sort places values 1..n at their home index in O(n) and O(1) space; great for missing/duplicate number problems.',
       'Do not sort when you only need a max, min or k-th element.',
     ],
+    definition:
+      'Sorting rearranges a collection into a defined order. Sorts that only ask "does a come before b" need about n log n comparisons in the worst case; sorts that use the values themselves as array indexes can beat that when the range of values is small.',
+    coreIdea:
+      'One comparison has two outcomes, so it can rule out at most half of the orderings still possible. There are n! possible orderings, so no comparison sort can finish in fewer than log2(n!) comparisons, which grows like n log n. Counting sort escapes that floor by never comparing anything: it uses each value as an index into a tally. The practical lesson is to look for structure in the values, not only in their order.',
+    visual: [
+      {
+        caption: 'Selection sort pass 1: scan all seven cells just to learn where the smallest value is, then swap it forward.',
+        frame: [
+          '[  4  2  2  8  3  3  1 ]',
+          '   i                 m',
+          'i = slot being filled, m = smallest in the rest',
+          '6 comparisons to place one value, then swap',
+          '[  1  2  2  8  3  3  4 ]',
+        ].join('\n'),
+      },
+      {
+        caption: 'Each pass is one cell shorter, so the totals add up as 6 + 5 + 4 + ... which is n(n-1)/2.',
+        frame: [
+          'selection sort, comparisons and rough time',
+          'n = 100          ~5,000            instant',
+          'n = 10,000       ~50,000,000       about a second',
+          'n = 1,000,000    ~5 * 10^11        hours',
+          'n log n at n = 1,000,000 is only ~2 * 10^7',
+        ].join('\n'),
+      },
+      {
+        caption: 'Counting sort, phase 1: one pass over the input fills a tally, with no comparison at all.',
+        frame: [
+          'input  [  4  2  2  8  3  3  1 ]   values 0..9',
+          'value    0  1  2  3  4  5  6  7  8  9',
+          'count    0  1  2  2  1  0  0  0  1  0',
+          'the counts add up to 7, the input length',
+        ].join('\n'),
+      },
+      {
+        caption: 'Phase 2: walk the values in order and write out each one as many times as it was counted.',
+        frame: [
+          'value 1, count 1  ->  1',
+          'value 2, count 2  ->  1 2 2',
+          'value 3, count 2  ->  1 2 2 3 3',
+          'value 4, count 1  ->  1 2 2 3 3 4',
+          'value 8, count 1  ->  1 2 2 3 3 4 8',
+          'total work: O(n) to count + O(k) to write',
+        ].join('\n'),
+      },
+      {
+        caption: 'Cyclic sort: when the values are exactly 1..n, value v has a home at index v - 1, so no comparison is needed either.',
+        frame: [
+          '[ 3  1  4  2 ]   a[0]=3, home is index 2, swap',
+          '[ 4  1  3  2 ]   a[0]=4, home is index 3, swap',
+          '[ 2  1  3  4 ]   a[0]=2, home is index 1, swap',
+          '[ 1  2  3  4 ]   done, O(n) time and O(1) space',
+        ].join('\n'),
+      },
+      {
+        caption: 'Why no comparison sort can beat n log n: counting how much information each comparison can give you.',
+        frame: [
+          'n = 5  ->  5! = 120 possible orderings',
+          'one comparison has 2 outcomes  ->  halves them',
+          'need k with 2^k >= 120  ->  k >= 7 comparisons',
+          'in general k >= log2(n!), which grows like n log n',
+        ].join('\n'),
+      },
+    ],
+    pseudocode: `function selectionSort(a):              // O(n^2), for teaching only
+    n = length(a)
+    for i from 0 to n - 1:
+        best = i
+        for j from i + 1 to n - 1:
+            if a[j] < a[best]:
+                best = j
+        swap a[i] and a[best]
+
+function countingSort(a, k):            // values are integers 0..k
+    count = array of size k + 1, all zero
+    for each x in a:
+        count[x] = count[x] + 1
+    write = 0
+    for value from 0 to k:
+        repeat count[value] times:
+            a[write] = value
+            write = write + 1
+
+function chooseASort(a):
+    if values are small integers in a known range: use countingSort
+    else if values are exactly 1..n:              use cyclicSort
+    else:                                          call the library sort`,
+    complexity: [
+      { label: 'Selection sort', time: 'O(n^2)', space: 'O(1)', note: 'the inner scan runs even when the input is already sorted' },
+      { label: 'Insertion sort', time: 'O(n) best, O(n^2) worst', space: 'O(1)', note: 'best case is data that is already almost in order' },
+      { label: 'Library sort (Timsort, introsort)', time: 'O(n log n)', space: 'O(n) or O(log n)', note: 'Timsort keeps a merge buffer; introsort only a recursion stack' },
+      { label: 'Counting sort', time: 'O(n + k)', space: 'O(n + k)', note: 'no comparisons; useless once k is much larger than n' },
+      { label: 'Cyclic sort', time: 'O(n)', space: 'O(1)', note: 'only valid when the values are exactly 1..n or 0..n-1' },
+    ],
+    dryRun: {
+      input: 'a = [4, 2, 2, 8, 3, 3, 1], k = 9',
+      goal: 'Sort a in place with the optimized counting_sort above, using the values as indexes instead of comparing them.',
+      steps: [
+        { state: 'a = [4, 2, 2, 8, 3, 3, 1], k = 9', action: 'Create counts as ten zeros, one slot for each possible value 0 through 9.' },
+        { state: 'counts = ten zeros, i = 0', action: 'The counting pass begins. x = 4, so counts[4] becomes 1.' },
+        { state: 'counts[4]=1', action: 'x = 2 appears twice, so counts[2] becomes 2. Then x = 8 sets counts[8] to 1.' },
+        { state: 'counts[2]=2 counts[8]=1', action: 'x = 3 appears twice, giving counts[3] = 2, and x = 1 gives counts[1] = 1.' },
+        { state: 'counts = [0,1,2,2,1,0,0,0,1,0]', action: 'The counting pass is finished. The counts add up to 7, which is the length of the input.' },
+        { state: 'i = 0, value = 0', action: 'counts[0] is 0, so nothing is written and the loop moves on to value 1.' },
+        { state: 'i = 0, value = 1', action: 'counts[1] is 1, so write 1 into a[0]. i becomes 1.' },
+        { state: 'i = 1, value = 2', action: 'counts[2] is 2, so write 2 into a[1] and a[2]. i becomes 3.' },
+        { state: 'i = 3, values 3 then 4', action: 'Write 3 into a[3] and a[4], then 4 into a[5]. i becomes 6.' },
+        { state: 'i = 6, value = 8', action: 'Write 8 into a[6]. Values 5, 6, 7 and 9 have count 0 and are skipped in O(1) each.' },
+      ],
+      result:
+        'a is now [1, 2, 2, 3, 3, 4, 8]. It is correct because every value was written exactly as many times as it was counted, and the writing loop visits values in increasing order.',
+    },
+    mistakes: [
+      {
+        mistake: 'Hand-writing an O(n^2) sort in an interview because it is the one you remember.',
+        why: 'At n = 100,000 that is roughly 5 * 10^9 comparisons. No judge and no interviewer will accept it, however clean the code looks.',
+        fix: 'Call the library sort and say out loud that it is O(n log n). Write a simple sort only when you are explicitly asked to implement one.',
+      },
+      {
+        mistake: 'Using counting sort when the value range is huge, for example values up to 10^9.',
+        why: 'The tally needs k + 1 slots, so both the memory and the writing loop explode even when n is small.',
+        fix: 'Check that k is comparable to n. Otherwise sort by comparison, or compress the values to ranks 0..n-1 first.',
+      },
+      {
+        mistake: 'Assuming every sort keeps equal elements in their original order.',
+        why: 'C++ std::sort and Java Arrays.sort on primitives are not stable, so a first sort by a secondary key is silently undone by the second sort.',
+        fix: 'Use std::stable_sort, or sort by a tuple that includes the tie-breaker so the order is fully determined by the key.',
+      },
+      {
+        mistake: 'Sorting the whole array when you only need the largest, the smallest, or the k-th value.',
+        why: 'That spends O(n log n) on work you throw away, when a single pass or a size-k heap answers the question directly.',
+        fix: 'Use one linear scan for max and min, a heap of size k for top-k, or quickselect for the k-th value.',
+      },
+      {
+        mistake: 'Applying cyclic sort when the values are not exactly in 1..n.',
+        why: 'A value outside that range has no home index, so the swap loop can run forever or index outside the array.',
+        fix: 'Guard the swap with a range check and simply skip any value below 1 or above n, which is what First Missing Positive needs.',
+      },
+    ],
+    whenToUse: [
+      'The problem gets easy once the data is in order, for example pairing, deduplicating, or greedy scheduling.',
+      'Values are small integers in a known range such as 0..2 or a..z, so counting sort gives O(n).',
+      'The values are exactly 1..n and the question is about a missing or duplicated number, which is cyclic sort.',
+      'You need a custom order and can pass a key or comparator without changing the O(n log n) cost.',
+      'n log n comfortably fits the limits, roughly n up to a few million.',
+    ],
+    whenNotToUse: [
+      'You only need the maximum, the minimum, or the k-th value; use one scan, a heap of size k, or quickselect.',
+      'Equal items must keep their original order and your language sort is not stable; use a stable sort or add a tie-breaker key.',
+      'You only need membership tests, where a hash set gives O(1) average lookups instead of O(n log n) sorting.',
+      'The data arrives as a stream and you need a running answer; a heap or a balanced tree fits better than re-sorting.',
+      'The value range k is far larger than n, so counting sort would use more memory than the input; fall back to comparison sorting.',
+    ],
+    relatedTopics: [
+      { id: 'merge-sort', kind: 'concept', why: 'The concrete O(n log n) comparison sort, and the source of the merge step library sorts borrow.' },
+      { id: 'quick-sort', kind: 'concept', why: 'The in-place average O(n log n) sort and the home of the partition trick.' },
+      { id: 'cyclic-sort', kind: 'pattern', why: 'The O(n) special case for values that are exactly 1..n.' },
+      { id: 'linear-vs-binary-search', kind: 'concept', why: 'Sorting is usually the setup step that makes binary search legal.' },
+      { id: 'top-k-heap', kind: 'pattern', why: 'The cheaper option when you need only the k largest values, not a full order.' },
+    ],
+    quiz: [
+      {
+        question: 'An interviewer hands you 200,000 unsorted integers to sort. Which option fits in time?',
+        options: [
+          'Selection sort, because it uses O(1) extra space',
+          'Bubble sort with an early-exit flag',
+          'The library sort at O(n log n), about 3.5 million comparisons',
+          'Counting sort, given values up to 10^9',
+        ],
+        answerIndex: 2,
+        explanation: 'n log n at n = 200,000 is under 4 million comparisons. Both quadratic sorts are around 2 * 10^10, and counting sort would need 10^9 tally slots.',
+      },
+      {
+        question: 'The values are known to be only 0, 1 or 2. What is the cheapest correct approach?',
+        options: [
+          'The library sort at O(n log n)',
+          'Counting sort or a three-way partition, both O(n)',
+          'Merge sort, for stability',
+          'Binary search',
+        ],
+        answerIndex: 1,
+        explanation: 'With three possible values, one counting pass or one Dutch-flag partition sweep sorts the array in linear time.',
+      },
+      {
+        question: 'Why can no comparison sort do better than about n log n comparisons in the worst case?',
+        options: [
+          'Because swapping elements is slow',
+          'Because there are n! orderings and each comparison rules out at most half of those still possible',
+          'Because arrays are stored row by row in memory',
+          'Because recursion costs O(log n) space',
+        ],
+        answerIndex: 1,
+        explanation: 'Reaching one ordering out of n! needs at least log2(n!) yes/no answers, and log2(n!) grows like n log n.',
+      },
+      {
+        question: 'You must sort a million employee records by salary and keep employees with equal salary in their original order. Is C++ std::sort enough?',
+        options: [
+          'Yes, std::sort is stable',
+          'No, std::sort is not stable; use std::stable_sort or sort by (salary, original index)',
+          'No, you must use counting sort',
+          'Yes, because salaries are integers',
+        ],
+        answerIndex: 1,
+        explanation: 'std::sort makes no stability promise. Either call std::stable_sort or make the original index part of the sort key.',
+      },
+      {
+        question: 'You run counting sort on n = 1000 values that range from 0 to 1,000,000,000. What happens?',
+        options: [
+          'It runs in O(n) as usual',
+          'It needs about a billion tally slots, so it is far worse than an O(n log n) sort',
+          'It is fine because counting sort is stable',
+          'It fails because the values must be unique',
+        ],
+        answerIndex: 1,
+        explanation: 'Counting sort is O(n + k). With k around 10^9 and n only 1000, the k term dominates both time and memory.',
+      },
+    ],
+    sources: [
+      'CLRS ch. 2 and ch. 8 (sorting in linear time)',
+      'MIT 6.006: sorting and the comparison lower bound',
+      'CP-Algorithms: Sorting',
+      'USACO Guide: Sorting',
+      'CPython listsort notes describing Timsort',
+    ],
     patternIds: ['cyclic-sort', 'two-pointers', 'brute-force'],
     problems: [
       {
@@ -1029,6 +1470,7 @@ int main() {
         patternId: 'brute-force',
         hint: 'Compare each position with a sorted copy; heights are small so counting sort gives O(n).',
         xp: 20,
+        tier: 'beginner',
       },
       {
         id: 'merge-sorted-array',
@@ -1038,6 +1480,7 @@ int main() {
         patternId: 'two-pointers',
         hint: 'Fill from the back of nums1 so you never overwrite values you still need.',
         xp: 20,
+        tier: 'beginner',
       },
       {
         id: 'sort-array-by-parity',
@@ -1047,6 +1490,7 @@ int main() {
         patternId: 'two-pointers',
         hint: 'One pointer for the next even slot, one scanning; swap evens forward in a single pass.',
         xp: 20,
+        tier: 'intermediate',
       },
       {
         id: 'relative-sort-array',
@@ -1056,6 +1500,7 @@ int main() {
         patternId: 'hash-map',
         hint: 'Count values of arr1, output them in arr2 order, then output the leftovers in ascending order.',
         xp: 20,
+        tier: 'intermediate',
       },
       {
         id: 'set-mismatch',
@@ -1065,6 +1510,7 @@ int main() {
         patternId: 'cyclic-sort',
         hint: 'Swap each value to index value - 1; afterwards the index that holds the wrong value reveals both numbers.',
         xp: 20,
+        tier: 'intermediate',
       },
       {
         id: 'first-missing-positive',
@@ -1074,6 +1520,7 @@ int main() {
         patternId: 'cyclic-sort',
         hint: 'Only values 1..n matter; cyclic-sort them into place, then the first index whose value is wrong is the answer.',
         xp: 80,
+        tier: 'advanced',
       },
     ],
   },
@@ -1331,6 +1778,218 @@ int main() {
       'The merge step can count inversions (pairs out of order) across the two halves.',
       'Best choice for linked lists and whenever a guaranteed O(n log n) is required.',
     ],
+    definition:
+      'Merge sort sorts an array by splitting it into two halves, sorting each half the same way, and then merging the two sorted halves into one with a single linear pass. It runs in O(n log n) on every input and it is stable.',
+    coreIdea:
+      'Merging two already-sorted lists is easy, because the next smallest item can only be at the front of one of them, so one comparison per output item is enough. That means the hard part is never the combining, it is getting the halves sorted, and recursion does that for free. Splitting gives log2(n) levels and each level merges every element exactly once, so the cost is n log n no matter how the input was arranged.',
+    visual: [
+      {
+        caption: 'Divide phase. Each piece splits at its middle, and the indentation shows the recursion tree.',
+        frame: [
+          '[5 2 4 7 1 3]',
+          '+-- [5 2 4]',
+          '|   +-- [5]',
+          '|   +-- [2 4]',
+          '|       +-- [2]',
+          '|       +-- [4]',
+          '+-- [7 1 3]',
+          '    +-- [7]',
+          '    +-- [1 3]',
+          '        +-- [1]',
+          '        +-- [3]',
+        ].join('\n'),
+      },
+      {
+        caption: 'Every leaf holds one item, which is sorted by definition. Splitting alone costs no comparisons at all.',
+        frame: [
+          'leaves:  [5]  [2]  [4]  [7]  [1]  [3]',
+          'depth = 3 levels of splitting for n = 6',
+          'that is ceil(log2(6)) = 3',
+        ].join('\n'),
+      },
+      {
+        caption: 'Merge phase, working back up the tree. Each merge is one linear pass over its two inputs.',
+        frame: [
+          '[2] + [4]         ->  [2 4]      1 comparison',
+          '[1] + [3]         ->  [1 3]      1 comparison',
+          '[5] + [2 4]       ->  [2 4 5]    2 comparisons',
+          '[7] + [1 3]       ->  [1 3 7]    2 comparisons',
+          '[2 4 5] + [1 3 7] ->  ?          final merge next',
+        ].join('\n'),
+      },
+      {
+        caption: 'The final merge. Two pointers, and each step takes the smaller of the two front values.',
+        frame: [
+          'left  [ 2  4  5 ]    right [ 1  3  7 ]',
+          '        i                     j',
+          'out   [ ]',
+          'compare 2 with 1  ->  1 is smaller, take it',
+        ].join('\n'),
+      },
+      {
+        caption: 'The rest of the merge. Ties take from the left first, and that single choice is what makes merge sort stable.',
+        frame: [
+          '2 vs 1  take 1   |   2 vs 3  take 2',
+          '4 vs 3  take 3   |   4 vs 7  take 4',
+          '5 vs 7  take 5   |   left is empty now',
+          'copy what is left of right: 7',
+          'out [ 1  2  3  4  5  7 ]   5 comparisons',
+        ].join('\n'),
+      },
+      {
+        caption: 'Why the total is n log n: every level merges all n elements once, and there are log2(n) levels.',
+        frame: [
+          'level 0:  1 piece of 6         merge work 6',
+          'level 1:  2 pieces of 3        merge work 6',
+          'level 2:  4 pieces of 1 or 2   merge work 6',
+          'levels = ceil(log2(6)) = 3',
+          'total = 6 * 3 = 18  ->  n * log n',
+        ].join('\n'),
+      },
+    ],
+    pseudocode: `function mergeSort(a, lo, hi):        // sorts a[lo .. hi - 1]
+    if hi - lo <= 1:                  // 0 or 1 element is already sorted
+        return
+    mid = lo + (hi - lo) / 2
+    mergeSort(a, lo, mid)
+    mergeSort(a, mid, hi)
+    merge(a, lo, mid, hi)
+
+function merge(a, lo, mid, hi):
+    buffer = empty list
+    i = lo
+    j = mid
+    while i < mid and j < hi:
+        if a[i] <= a[j]:              // <= keeps equal items in order
+            append a[i] to buffer
+            i = i + 1
+        else:
+            append a[j] to buffer
+            j = j + 1
+    while i < mid: append a[i] to buffer; i = i + 1
+    while j < hi:  append a[j] to buffer; j = j + 1
+    copy buffer back into a[lo .. hi - 1]`,
+    complexity: [
+      { label: 'Best case', time: 'O(n log n)', space: 'O(n)', note: 'the split ignores whether the input is already sorted' },
+      { label: 'Average case', time: 'O(n log n)', space: 'O(n)', note: 'log2(n) levels, one linear merge per level' },
+      { label: 'Worst case', time: 'O(n log n)', space: 'O(n)', note: 'the only common sort with no bad input at all' },
+      { label: 'The merge step alone', time: 'O(n)', space: 'O(n)', note: 'one comparison and one write per output element' },
+      { label: 'On a linked list', time: 'O(n log n)', space: 'O(log n)', note: 'nodes are relinked, so only the recursion stack costs memory' },
+    ],
+    dryRun: {
+      input: 'nums = [5, 2, 4, 7, 1, 3]',
+      goal: 'Return a new sorted list using the optimized merge_sort above, which slices, recurses, and merges.',
+      steps: [
+        { state: 'nums = [5, 2, 4, 7, 1, 3]', action: 'Length 6 is more than 1, so mid = 3 and we recurse on [5, 2, 4] and [7, 1, 3].' },
+        { state: 'left call on [5, 2, 4]', action: 'mid = 1, so it recurses on [5] and [2, 4]. [5] returns immediately because its length is 1.' },
+        { state: '[2, 4] splits into [2] and [4]', action: 'Both are single elements. Their merge compares 2 with 4 once and returns [2, 4].' },
+        { state: 'left = [5], right = [2, 4]', action: 'Merge them: 5 > 2 takes 2, 5 > 4 takes 4, then 5 is left over. The left half is now [2, 4, 5].' },
+        { state: 'right call on [7, 1, 3]', action: 'The same shape gives [1, 3], which merges with [7] to produce [1, 3, 7].' },
+        { state: 'left = [2, 4, 5], right = [1, 3, 7], i=0 j=0', action: '2 <= 1 is false, so take 1 from the right. merged = [1] and j becomes 1.' },
+        { state: 'i=0 j=1 merged=[1]', action: '2 <= 3 is true, so take 2 from the left. merged = [1, 2] and i becomes 1.' },
+        { state: 'i=1 j=1 merged=[1, 2]', action: '4 <= 3 is false so take 3; then 4 <= 7 takes 4 and 5 <= 7 takes 5. merged = [1, 2, 3, 4, 5] and i becomes 3.' },
+        { state: 'i=3 j=2 merged=[1, 2, 3, 4, 5]', action: 'i has passed the end of left, so the while loop stops and the leftover [7] is extended onto the result.' },
+      ],
+      result:
+        'Returns [1, 2, 3, 4, 5, 7]. It is correct because each merge always takes the smaller of two sorted fronts, which keeps the output sorted, and a single element is sorted by definition.',
+    },
+    mistakes: [
+      {
+        mistake: 'Writing the base case as len(nums) == 0 only.',
+        why: 'A one-element slice then splits into an empty half and a copy of itself, so the same call repeats forever until the stack overflows.',
+        fix: 'Return whenever the length is 0 or 1, that is if len(nums) <= 1.',
+      },
+      {
+        mistake: 'Using < instead of <= when comparing the two fronts in the merge.',
+        why: 'Equal elements are then taken from the right half first, so merge sort stops being stable and any earlier sort key is quietly lost.',
+        fix: 'Compare with a[i] <= a[j] so ties always come from the left half, which is the earlier part of the original array.',
+      },
+      {
+        mistake: 'Claiming merge sort is in place because the recursion does not allocate.',
+        why: 'The merge itself needs somewhere to write while it reads, so every practical version allocates a buffer of size n.',
+        fix: 'State O(n) extra space honestly, and offer quick sort or heap sort when the interviewer asks for an in-place sort.',
+      },
+      {
+        mistake: 'Allocating a brand new temporary array inside every merge call.',
+        why: 'That is thousands of allocations on a large input. The complexity is unchanged but the real runtime can double or worse.',
+        fix: 'Allocate one buffer of size n up front and pass it down, exactly as the index-based Java and C++ versions above do.',
+      },
+      {
+        mistake: 'Recursing on overlapping ranges, such as mergeSort(lo, mid) and mergeSort(mid - 1, hi).',
+        why: 'One element then belongs to both halves, so it appears twice in the output and a different element goes missing.',
+        fix: 'With a half-open range use [lo, mid) and [mid, hi). With a closed range use [lo, mid] and [mid + 1, hi].',
+      },
+    ],
+    whenToUse: [
+      'You need a guaranteed O(n log n) with no bad-input case, for example against adversarial data.',
+      'The relative order of equal items must be preserved, that is you need a stable sort.',
+      'The data is a linked list, where splitting and merging only relink pointers.',
+      'You must count pairs that cross the two halves, such as inversions or reverse pairs, during the merge.',
+      'The data is too big for memory and must be sorted as runs from disk, which is external merge sort.',
+    ],
+    whenNotToUse: [
+      'Memory is tight and you cannot afford an O(n) buffer; use quick sort or heap sort in place.',
+      'The array is small or nearly sorted, where insertion sort finishes in about O(n) with no allocation.',
+      'You only need the k-th smallest element, where quickselect gives O(n) average without sorting anything.',
+      'The values are small integers in a known range, where counting or radix sort gives O(n + k).',
+      'You just need the data in order and the language already ships an O(n log n) sort, so call it instead of rewriting it.',
+    ],
+    relatedTopics: [
+      { id: 'divide-and-conquer', kind: 'pattern', why: 'Merge sort is the textbook shape of split, solve each part, then combine.' },
+      { id: 'two-pointers', kind: 'pattern', why: 'The merge step is a two-pointer sweep across two sorted sequences.' },
+      { id: 'quick-sort', kind: 'concept', why: 'The other O(n log n) sort, trading these guarantees for in-place work.' },
+      { id: 'merging-lists', kind: 'concept', why: 'Merging two sorted linked lists is exactly the merge step on its own.' },
+      { id: 'k-way-merge', kind: 'pattern', why: 'Extends the same merge to more than two sorted sequences using a heap.' },
+    ],
+    quiz: [
+      {
+        question: 'Merge sort is handed an array that is already fully sorted. What is its running time?',
+        options: ['O(n), it notices the order', 'O(n log n), it splits and merges the same way regardless', 'O(n^2)', 'O(log n)'],
+        answerIndex: 1,
+        explanation: 'Plain merge sort never checks whether the input is ordered. Timsort adds run detection on top, which is how it reaches O(n) on sorted input.',
+      },
+      {
+        question: 'Why does the merge use <= rather than < when comparing the two fronts?',
+        options: [
+          'To handle empty halves correctly',
+          'To keep the sort stable, so equal items keep their original relative order',
+          'To avoid an infinite loop',
+          'To save one comparison per merge',
+        ],
+        answerIndex: 1,
+        explanation: 'On a tie, <= takes from the left half, and the left half holds the elements that came first in the original array.',
+      },
+      {
+        question: 'You must sort a singly linked list of 10^6 nodes in O(n log n) using only O(log n) extra space. Does merge sort fit?',
+        options: [
+          'No, merge sort always needs an O(n) array',
+          'Yes, splitting and merging a list only relinks pointers, so only the recursion stack costs space',
+          'No, linked lists cannot be sorted efficiently',
+          'Only if the list is doubly linked',
+        ],
+        answerIndex: 1,
+        explanation: 'The O(n) buffer is an array-only cost. On a list you rewire next pointers, so the recursion depth of about log2(n) is the only extra memory.',
+      },
+      {
+        question: 'While merging [2, 4, 5] with [1, 3, 7], you take 1 from the right while 3 elements still wait on the left. How many inversions does that reveal?',
+        options: ['1', '3, one for each element still waiting on the left', '0', '6'],
+        answerIndex: 1,
+        explanation: 'Every element still in the left half sits at a smaller original index and is larger than the value just taken, so each one forms an inversion with it.',
+      },
+      {
+        question: 'How much extra space does the array version of merge sort need in total?',
+        options: ['O(1)', 'O(log n), for the stack only', 'O(n) for the merge buffer plus O(log n) for the recursion stack', 'O(n log n)'],
+        answerIndex: 2,
+        explanation: 'The buffer dominates, so the usual short answer is O(n), but the recursion stack of depth log2(n) is genuinely there too.',
+      },
+    ],
+    sources: [
+      'CLRS ch. 2 (merge sort) and ch. 4 (recurrences and the master method)',
+      'MIT 6.006: divide and conquer, merge sort',
+      'MIT 6.046: solving recurrences',
+      'CP-Algorithms: Sorting and counting inversions',
+      'USACO Guide: Divide and Conquer',
+    ],
     patternIds: ['divide-and-conquer', 'two-pointers', 'recursion'],
     problems: [
       {
@@ -1341,6 +2000,7 @@ int main() {
         patternId: 'two-pointers',
         hint: 'This is the merge step alone: keep a tail pointer and attach the smaller head each time.',
         xp: 20,
+        tier: 'beginner',
       },
       {
         id: 'sort-an-array',
@@ -1350,6 +2010,7 @@ int main() {
         patternId: 'divide-and-conquer',
         hint: 'Implement merge sort by hand; the judge rejects O(n^2) solutions.',
         xp: 40,
+        tier: 'beginner',
       },
       {
         id: 'sort-list',
@@ -1359,6 +2020,7 @@ int main() {
         patternId: 'divide-and-conquer',
         hint: 'Find the middle with slow and fast pointers, sort both halves, merge the two lists.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'reverse-pairs',
@@ -1368,6 +2030,7 @@ int main() {
         patternId: 'divide-and-conquer',
         hint: 'Before merging two sorted halves, count pairs with left > 2 * right using two pointers, then merge normally.',
         xp: 80,
+        tier: 'advanced',
       },
       {
         id: 'count-of-smaller-numbers-after-self',
@@ -1377,6 +2040,7 @@ int main() {
         patternId: 'divide-and-conquer',
         hint: 'Merge sort pairs of (value, original index); when taking from the left, add how many right elements have already been taken.',
         xp: 80,
+        tier: 'advanced',
       },
     ],
   },
@@ -1655,6 +2319,226 @@ int main() {
       'Quickselect reuses partition to find the k-th largest in O(n) average by recursing into one side only.',
       'Not stable; recursion depth is O(log n) expected. Merge sort is the stable, guaranteed alternative.',
     ],
+    definition:
+      'Quick sort picks one element as a pivot and rearranges the array in place so every smaller value sits left of the pivot and every larger value sits right of it, then sorts the two sides the same way. After each partition the pivot is already in its final position.',
+    coreIdea:
+      'One linear partition pass buys two things at once. It puts a single element where it belongs forever, and it guarantees no element will ever need to cross the pivot again. That makes the two sides completely independent sub-problems with no combining step at all, so the entire cost depends only on how evenly the pivot splits the range. This is why pivot choice, and not the partition itself, decides whether you get n log n or n^2.',
+    visual: [
+      {
+        caption: 'Lomuto partition on [3, 8, 2, 5, 1, 4] with the last cell as pivot. s marks the next slot for a small value; i scans.',
+        frame: [
+          '[ 3  8  2  5  1  4 ]   pivot = 4',
+          '  s                    s = 0',
+          '  i                    i = 0:  3 < 4  ->  swap, s = 1',
+        ].join('\n'),
+      },
+      {
+        caption: 'i = 1 finds 8, which is bigger than the pivot. Nothing moves and s stays behind, marking the big value.',
+        frame: [
+          '[ 3  8  2  5  1  4 ]',
+          '     s                 s = 1  (points at the 8)',
+          '     i                 i = 1:  8 > 4  ->  skip',
+        ].join('\n'),
+      },
+      {
+        caption: 'i = 2 finds 2, which is small, so it swaps into slot s and pushes the big value rightward.',
+        frame: [
+          '[ 3  8  2  5  1  4 ]',
+          '     s                 swap a[2] with a[1]',
+          '        i',
+          '[ 3  2  8  5  1  4 ]   s = 2',
+        ].join('\n'),
+      },
+      {
+        caption: 'i = 4 finds 1, the last small value. Then the pivot is swapped into slot s and is final forever.',
+        frame: [
+          '[ 3  2  8  5  1  4 ]',
+          '        s              swap a[4] with a[2]',
+          '              i',
+          '[ 3  2  1  5  8  4 ]   s = 3, scan over',
+          '[ 3  2  1  4  8  5 ]   pivot dropped into slot 3',
+          'now recurse on [3 2 1] and on [8 5]',
+        ].join('\n'),
+      },
+      {
+        caption: 'Good pivots: each split is roughly even, so there are about log2(n) levels and each level does O(n) work.',
+        frame: [
+          'balanced pivots, n = 8',
+          'level 0        [ 8 items ]        work 8',
+          'level 1     [4]        [4]        work 8',
+          'level 2   [2] [2]    [2] [2]      work 8',
+          'levels = log2(8) = 3  ->  total 8 * 3 = 24',
+        ].join('\n'),
+      },
+      {
+        caption: 'Bad pivots: always taking the last cell on sorted input peels off one element per level. That is n levels and O(n^2).',
+        frame: [
+          'sorted input, pivot = last cell',
+          '[1 2 3 4 5]  ->  pivot 5, left 4 items, right 0',
+          '[1 2 3 4]    ->  pivot 4, left 3 items, right 0',
+          '[1 2 3]      ->  pivot 3, and so on',
+          '5 levels, work 5+4+3+2+1 = 15, which is n^2 / 2',
+          'a random pivot makes this pattern practically impossible',
+        ].join('\n'),
+      },
+    ],
+    pseudocode: `function quickSort(a, lo, hi):        // sorts a[lo .. hi], ends included
+    while lo < hi:
+        p = randomIndexBetween(lo, hi)
+        swap a[p] and a[hi]           // move the pivot out of the way
+        s = partition(a, lo, hi)
+        if s - lo < hi - s:           // recurse into the smaller side only
+            quickSort(a, lo, s - 1)   // this keeps the stack O(log n)
+            lo = s + 1                // then loop on the bigger side
+        else:
+            quickSort(a, s + 1, hi)
+            hi = s - 1
+
+function partition(a, lo, hi):        // the pivot value sits at a[hi]
+    pivot = a[hi]
+    s = lo
+    for i from lo to hi - 1:
+        if a[i] < pivot:
+            swap a[i] and a[s]
+            s = s + 1
+    swap a[s] and a[hi]
+    return s                          // a[s] is now in its final place`,
+    complexity: [
+      { label: 'Best case', time: 'O(n log n)', space: 'O(log n)', note: 'pivot splits evenly, giving about log2(n) levels' },
+      { label: 'Average with a random pivot', time: 'O(n log n) expected', space: 'O(log n)', note: 'expected over the random pivots, not over the inputs' },
+      { label: 'Worst case', time: 'O(n^2)', space: 'O(n), or O(log n) with the smaller-side trick', note: 'every pivot is the smallest or largest value, so there are n levels' },
+      { label: 'Quickselect for the k-th value', time: 'O(n) average, O(n^2) worst', space: 'O(1)', note: 'recurses into one side only: n + n/2 + n/4 + ... = 2n' },
+      { label: 'The partition step alone', time: 'O(n)', space: 'O(1)', note: 'one sweep, swapping in place, no extra array' },
+    ],
+    dryRun: {
+      input: 'arr = [3, 8, 2, 5, 1, 4], and the random pivot pick happens to land on index 5',
+      goal: 'Sort arr in place with the optimized random-pivot quick_sort above.',
+      steps: [
+        { state: 'a = [3, 8, 2, 5, 1, 4], lo=0, hi=5', action: 'lo < hi so we partition. The random pick is p = 5, which is already the last cell, so the swap changes nothing and pivot = 4.' },
+        { state: 'pivot=4 store=0 i=0 a[0]=3', action: '3 < 4, so swap a[0] with a[0] (no visible change) and move store to 1.' },
+        { state: 'store=1 i=1 a[1]=8', action: '8 is not less than 4, so nothing moves and store stays at 1, marking where the 8 sits.' },
+        { state: 'store=1 i=2 a[2]=2', action: '2 < 4, so swap a[2] with a[1]. The array becomes [3, 2, 8, 5, 1, 4] and store becomes 2.' },
+        { state: 'store=2 i=3 a[3]=5', action: '5 is not less than 4, so skip it and leave store alone.' },
+        { state: 'store=2 i=4 a[4]=1', action: '1 < 4, so swap a[4] with a[2]. The array becomes [3, 2, 1, 5, 8, 4] and store becomes 3.' },
+        { state: 'store=3, scan finished', action: 'Swap a[3] with a[5] to drop the pivot into place: [3, 2, 1, 4, 8, 5]. Index 3 is now final.' },
+        { state: 'left = a[0..2] = [3, 2, 1], right = a[4..5] = [8, 5]', action: 'Recurse on both sides. The pivot at index 3 is never touched again by either call.' },
+        { state: 'left becomes [1, 2, 3], right becomes [5, 8]', action: 'Each side runs the same partition dance on three and two elements.' },
+      ],
+      result:
+        'arr becomes [1, 2, 3, 4, 5, 8]. It is correct because after every partition each value left of the pivot is smaller and each value right of it is larger, so sorting the two sides sorts the whole range.',
+    },
+    mistakes: [
+      {
+        mistake: 'Always using the first or last element as the pivot in real code.',
+        why: 'Sorted, reverse sorted and mostly-equal inputs are all common, and each of them forces n levels, so the sort silently becomes O(n^2).',
+        fix: 'Pick the pivot at random, or take the median of the first, middle and last cell, and say why while you write it.',
+      },
+      {
+        mistake: 'Recursing on [lo, s] and [s, hi], leaving the pivot inside a sub-range.',
+        why: 'When the pivot lands at an end, one sub-range is the same size as the original, so the recursion never shrinks and never terminates.',
+        fix: 'The pivot at index s is already final. Recurse on [lo, s - 1] and [s + 1, hi] only.',
+      },
+      {
+        mistake: 'Saying quick sort is stable, or that its average O(n log n) is a guarantee.',
+        why: 'Partitioning swaps distant elements, so equal items can change order, and O(n log n) is only the expectation over pivot choices, not a bound.',
+        fix: 'Say it plainly: expected O(n log n), worst case O(n^2), not stable. Offer merge sort when a guarantee or stability is required.',
+      },
+      {
+        mistake: 'Using the two-way Lomuto partition on an array full of equal keys.',
+        why: 'The test is a[i] < pivot, so no equal value moves left. The pivot ends up at an end each time and an all-equal array degrades to n levels.',
+        fix: 'Use a three-way Dutch national flag partition that groups less, equal and greater, which makes all-equal input O(n).',
+      },
+      {
+        mistake: 'Fully sorting both sides when the question only asks for the k-th value.',
+        why: 'Sorting the side that cannot possibly contain index k is wasted work, and it pushes the cost back up to O(n log n).',
+        fix: 'After partitioning, compare s with the target index and recurse into that one side only. That is quickselect, O(n) on average.',
+      },
+    ],
+    whenToUse: [
+      'You must sort in place with only O(log n) extra memory.',
+      'The question is "k-th largest" or "top k" on a large array, where quickselect gives O(n) on average.',
+      '"Sort colors" or "move every value below x to the front" is a single partition pass.',
+      'Average speed matters more than a worst-case guarantee, for example on random or shuffled data.',
+      'The interviewer asks how a library sort works under the hood.',
+    ],
+    whenNotToUse: [
+      'You need a hard worst-case guarantee, for example on adversarial input; merge sort or heap sort are O(n log n) always.',
+      'Equal elements must keep their original order, since quick sort is not stable; use merge sort or Timsort.',
+      'The data is a linked list, where partitioning needs random access; merge sort is the natural list sort.',
+      'The array is small or nearly sorted, where insertion sort finishes in roughly O(n).',
+      'Values are small integers in a known range, where counting or radix sort beats any comparison sort at O(n + k).',
+    ],
+    relatedTopics: [
+      { id: 'merge-sort', kind: 'concept', why: 'The stable, guaranteed O(n log n) alternative, trading in-place work for an O(n) buffer.' },
+      { id: 'divide-and-conquer', kind: 'pattern', why: 'Quick sort divides with the partition and needs no combine step at all.' },
+      { id: 'two-pointers', kind: 'pattern', why: 'Partitioning, including the three-way Dutch flag version, is a two-pointer sweep.' },
+      { id: 'top-k-heap', kind: 'pattern', why: 'The heap alternative for top-k: O(n log k) worst case versus quickselect at O(n) average.' },
+      { id: 'sorting-basics', kind: 'concept', why: 'Places quick sort among the other sorts and explains what libraries actually run.' },
+    ],
+    quiz: [
+      {
+        question: 'What is the worst-case time of quick sort when the pivot is chosen at random?',
+        options: [
+          'O(n log n), randomness removes the worst case',
+          'O(n^2), but the chance of hitting it is vanishingly small',
+          'O(n)',
+          'O(n log^2 n)',
+        ],
+        answerIndex: 1,
+        explanation: 'Randomness changes the probability, not the set of possible outcomes. The expected time is O(n log n), but a long run of unlucky pivots is still O(n^2).',
+      },
+      {
+        question: 'What do typical modern library sorts actually use?',
+        options: [
+          'Plain quick sort with the last element as pivot',
+          'Bubble sort with an early exit',
+          'Introsort, which is quick sort that switches to heap sort when it recurses too deep, for C++; and Timsort, a merge sort with run detection, for Python and Java objects',
+          'Counting sort',
+        ],
+        answerIndex: 2,
+        explanation: 'Both designs exist precisely to keep quick sort speed while removing its O(n^2) worst case or adding stability.',
+      },
+      {
+        question: 'You need the 5th largest of 10^6 unsorted integers and memory is tight. Best approach?',
+        options: [
+          'Sort the whole array, then index it, at O(n log n)',
+          'Quickselect with a random pivot: O(n) expected and no extra array',
+          'Bubble sort and stop after 5 passes',
+          'Binary search the array',
+        ],
+        answerIndex: 1,
+        explanation: 'Quickselect partitions and then recurses into one side only, so the work adds up to about 2n and it needs no extra storage.',
+      },
+      {
+        question: 'Why is the median-of-three pivot rule popular?',
+        options: [
+          'It makes quick sort stable',
+          'It guarantees O(n log n)',
+          'It cheaply avoids the worst case on sorted and reverse-sorted data, which are the common bad inputs',
+          'It reduces memory use',
+        ],
+        answerIndex: 2,
+        explanation: 'It costs two extra comparisons and removes the everyday bad cases, but a crafted input can still defeat it, unlike a truly random pivot.',
+      },
+      {
+        question: 'The array is [7, 7, 7, 7, 7, 7]. What does the classic two-way Lomuto partition do with it?',
+        options: [
+          'Finishes in O(n) because all the values are equal',
+          'Pushes every element to one side, so the recursion is n levels deep and the sort is O(n^2)',
+          'Crashes with an index error',
+          'Is unaffected, because the pivot is chosen at random',
+        ],
+        answerIndex: 1,
+        explanation: 'The test is a[i] < pivot, so no equal value moves left and the pivot lands at an end every time. A three-way partition fixes this and a random pivot does not.',
+      },
+    ],
+    sources: [
+      'CLRS ch. 7 (quicksort) and ch. 9 (medians and order statistics)',
+      'MIT 6.006: randomized selection',
+      'MIT 6.046: analysis of randomized quicksort',
+      'CP-Algorithms: Sorting and the k-th order statistic',
+      'CPython listsort notes, and the introsort design used by C++ standard libraries',
+    ],
     patternIds: ['divide-and-conquer', 'two-pointers', 'top-k-heap'],
     problems: [
       {
@@ -1665,6 +2549,7 @@ int main() {
         patternId: 'two-pointers',
         hint: 'Three-way partition around the value 1: a low boundary for 0s, a high boundary for 2s, one scan.',
         xp: 40,
+        tier: 'beginner',
       },
       {
         id: 'partition-array-according-to-given-pivot',
@@ -1674,6 +2559,7 @@ int main() {
         patternId: 'two-pointers',
         hint: 'Order must be preserved within groups, so collect less, equal and greater in three passes or lists and concatenate.',
         xp: 40,
+        tier: 'beginner',
       },
       {
         id: 'kth-largest-element-in-an-array',
@@ -1683,6 +2569,7 @@ int main() {
         patternId: 'divide-and-conquer',
         hint: 'Quickselect: partition, then recurse only into the side that contains index n - k.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'top-k-frequent-elements',
@@ -1692,6 +2579,7 @@ int main() {
         patternId: 'top-k-heap',
         hint: 'Count frequencies, then quickselect (or a heap of size k) on the unique values by frequency.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'k-closest-points-to-origin',
@@ -1701,6 +2589,7 @@ int main() {
         patternId: 'top-k-heap',
         hint: 'Partition points by squared distance with quickselect until the first k are the closest; no need to sort them.',
         xp: 40,
+        tier: 'advanced',
       },
     ],
   },

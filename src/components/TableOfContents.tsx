@@ -12,24 +12,49 @@ export interface TocItem {
  * Concept pages now run thirteen sections, which is far past what a reader can
  * hold in their head. This shows where they are and lets them jump.
  */
-/** Tracks which section is currently in view. */
+/**
+ * Tracks which section the reader is in.
+ *
+ * Uses scroll position rather than IntersectionObserver on purpose. Sections
+ * here vary enormously in height, and an observer that picks the topmost
+ * intersecting entry keeps choosing a very tall section long after it has
+ * scrolled away, because its top is the most negative. The active section is
+ * simply the last one whose heading has crossed the reading line.
+ */
 function useActiveSection(items: TocItem[]) {
   const [active, setActive] = useState(items[0]?.id)
+
   useEffect(() => {
-    const targets = items.map((i) => document.getElementById(i.id)).filter((el): el is HTMLElement => Boolean(el))
-    if (!targets.length) return
-    const obs = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
-        if (visible[0]) setActive(visible[0].target.id)
-      },
-      { rootMargin: '-80px 0px -65% 0px', threshold: 0 },
-    )
-    targets.forEach((t) => obs.observe(t))
-    return () => obs.disconnect()
+    if (!items.length) return
+    const LINE = 140 // px below the top of the viewport
+    let frame = 0
+
+    const measure = () => {
+      frame = 0
+      let current = items[0].id
+      for (const it of items) {
+        const el = document.getElementById(it.id)
+        if (el && el.getBoundingClientRect().top <= LINE) current = it.id
+      }
+      // At the very bottom the last section may never cross the line.
+      const atBottom = window.innerHeight + window.scrollY >= document.body.scrollHeight - 4
+      setActive(atBottom ? items[items.length - 1].id : current)
+    }
+
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(measure)
+    }
+
+    measure()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      if (frame) cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
   }, [items])
+
   return active
 }
 
@@ -86,8 +111,8 @@ export function MobileToc({ items }: { items: TocItem[] }) {
   }, [active])
 
   return (
-    <div className="xl:hidden sticky top-14 md:top-0 z-20 -mx-5 md:-mx-10 px-5 md:px-10 py-2 mb-8 bg-[rgb(var(--bg-rgb)/0.85)] backdrop-blur-lg border-b border-[var(--line)]">
-      <div ref={stripRef} className="flex gap-1.5 overflow-x-auto no-scrollbar scroll-smooth">
+    <div className="xl:hidden sticky top-14 md:top-0 z-20 -mx-5 md:-mx-10 py-2 mb-8 overflow-hidden bg-[rgb(var(--bg-rgb)/0.85)] backdrop-blur-lg border-b border-[var(--line)]">
+      <div ref={stripRef} className="flex gap-1.5 px-5 md:px-10 overflow-x-auto no-scrollbar scroll-smooth">
         {items.map((i, n) => (
           <button
             key={i.id}

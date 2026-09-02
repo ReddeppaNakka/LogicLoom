@@ -2123,6 +2123,294 @@ vector<int> dijkstra(vector<vector<pair<int,int>>>& adj, int start, int n) {
       'Negative weights or "at most k stops": Bellman-Ford with a copied array per round.',
       '"Minimise the largest edge" still works with Dijkstra using max instead of sum.',
     ],
+    definition:
+      'A shortest path from s to t is a path whose total edge weight is as small as possible. Which algorithm you need is decided by one thing only, the weights: all equal, only 0 and 1, all non-negative, or possibly negative.',
+    coreIdea:
+      'Every one of these algorithms performs the same single move, called relaxing an edge: if reaching v through u is cheaper than the best cost recorded for v, write down the cheaper cost. They differ only in the order they relax edges. If every weight is at least 0, then always expanding the cheapest unfinished node means nothing can ever make it cheaper later, so each node is finished once and the whole run is O((V + E) log V) with a binary heap; that is Dijkstra. A negative edge destroys that guarantee, so you fall back to relaxing all E edges V - 1 times, which is Bellman-Ford at O(V * E).',
+    visual: [
+      {
+        caption: 'Four nodes with weighted, directed edges. Note that the direct edge 0 -> 1 costs 4 but the two-edge route through node 2 costs only 3.',
+        frame: [
+          'weights: 0->1 = 4   0->2 = 1   2->1 = 2',
+          '         1->3 = 1   2->3 = 5',
+          '',
+          '             (4)',
+          '   +---------------------+',
+          '   |                     v',
+          '   0 --(1)--> 2 --(2)--> 1 --(1)--> 3',
+          '              +--------(5)----------^',
+        ].join('\n'),
+      },
+      {
+        caption: 'Start of Dijkstra: only the source has a known cost. inf means "no route found yet".',
+        frame: [
+          'node : 0    1    2    3',
+          'dist : 0   inf  inf  inf',
+          'heap : [(0, 0)]',
+          'done : {}',
+        ].join('\n'),
+      },
+      {
+        caption: 'Pop the cheapest entry (cost 0, node 0) and relax both of its out-edges.',
+        frame: [
+          'pop (0, node 0)  ->  node 0 is final',
+          'relax 0->1 : 0 + 4 = 4  <  inf   dist[1] = 4',
+          'relax 0->2 : 0 + 1 = 1  <  inf   dist[2] = 1',
+          'dist : 0    4    1   inf',
+          'heap : [(1, 2), (4, 1)]',
+        ].join('\n'),
+      },
+      {
+        caption: 'The heap hands back node 2 first because 1 < 4. Relaxing 2->1 finds a better route to node 1.',
+        frame: [
+          'pop (1, node 2)  ->  node 2 is final',
+          'relax 2->1 : 1 + 2 = 3  <  4     dist[1] = 3',
+          'relax 2->3 : 1 + 5 = 6  <  inf   dist[3] = 6',
+          'dist : 0    3    1    6',
+          'heap : [(3, 1), (4, 1), (6, 3)]',
+        ].join('\n'),
+      },
+      {
+        caption: 'Node 1 now sits in the heap twice, at its old cost 4 and its new cost 3. The cheaper copy comes out first.',
+        frame: [
+          'pop (3, node 1)  ->  3 = dist[1], so it is fresh',
+          'relax 1->3 : 3 + 1 = 4  <  6     dist[3] = 4',
+          'dist : 0    3    1    4',
+          'heap : [(4, 1), (4, 3), (6, 3)]',
+        ].join('\n'),
+      },
+      {
+        caption: 'The leftover copies are stale and are skipped by the cost > dist test. BFS would have answered 4 for node 1, because it counts edges instead of weights.',
+        frame: [
+          'pop (4, node 1) : 4 > dist[1] = 3  ->  stale, skip',
+          'pop (4, node 3) : final, no out-edges',
+          'pop (6, node 3) : 6 > dist[3] = 4  ->  stale, skip',
+          'dist : 0    3    1    4      FINAL',
+        ].join('\n'),
+      },
+    ],
+    pseudocode: `// equal weights -> BFS      weights 0 or 1 -> 0-1 BFS with a deque
+// weights >= 0   -> Dijkstra  any negative   -> Bellman-Ford
+
+function dijkstra(adj, start, n):     // adj[u] = list of (v, w), every w >= 0
+    dist = array of n values, all infinity
+    dist[start] = 0
+    heap = min-heap holding (0, start), ordered by cost
+    while heap is not empty:
+        (cost, node) = remove the smallest entry from heap
+        if cost > dist[node]:
+            continue                  // stale copy, a cheaper one already won
+        for each (nxt, w) in adj[node]:
+            if cost + w < dist[nxt]:
+                dist[nxt] = cost + w
+                insert (dist[nxt], nxt) into heap
+    return dist
+
+function bellmanFord(edgeList, start, n):    // weights may be negative
+    dist = array of n values, all infinity
+    dist[start] = 0
+    repeat n - 1 times:
+        for each (u, v, w) in edgeList:
+            if dist[u] is not infinity and dist[u] + w < dist[v]:
+                dist[v] = dist[u] + w
+    for each (u, v, w) in edgeList:          // one extra round
+        if dist[u] is not infinity and dist[u] + w < dist[v]:
+            return "a negative cycle is reachable from start"
+    return dist`,
+    complexity: [
+      {
+        label: 'BFS, every edge costs the same',
+        time: 'O(V + E)',
+        space: 'O(V)',
+        note: 'ring order equals distance order; only correct when weights are equal',
+      },
+      {
+        label: '0-1 BFS with a deque, weights only 0 or 1',
+        time: 'O(V + E)',
+        space: 'O(V)',
+        note: 'weight 0 goes on the front, weight 1 on the back, so no heap is needed',
+      },
+      {
+        label: 'Dijkstra with a binary heap, weights >= 0',
+        time: 'O((V + E) log V)',
+        space: 'O(V + E)',
+        note: 'one heap push per improvement; a Fibonacci heap gives O(E + V log V) in theory',
+      },
+      {
+        label: 'Bellman-Ford, any weights',
+        time: 'O(V * E)',
+        space: 'O(V)',
+        note: 'V - 1 relaxation rounds, plus one extra round that detects a negative cycle',
+      },
+      {
+        label: 'Shortest path on a DAG',
+        time: 'O(V + E)',
+        space: 'O(V)',
+        note: 'relax edges in topological order; negative weights are fine here',
+      },
+    ],
+    dryRun: {
+      input: 'n = 4, adj = [[(1,4), (2,1)], [(3,1)], [(1,2), (3,5)], []], start = 0',
+      goal: 'Find the cheapest total weight from node 0 to every node, following dijkstra from the optimised code.',
+      steps: [
+        {
+          state: 'dist = [0, inf, inf, inf]  heap = [(0, 0)]',
+          action: 'Only the start has a known cost. Every other node is unreachable so far.',
+        },
+        {
+          state: 'cost = 0  node = 0',
+          action: 'Pop (0, 0). Since 0 is not greater than dist[0], the entry is fresh. Relax both out-edges: dist[1] = 4 and dist[2] = 1, and push (4,1) and (1,2).',
+        },
+        {
+          state: 'dist = [0, 4, 1, inf]  heap = [(1, 2), (4, 1)]',
+          action: 'The heap orders by cost, so node 2 at cost 1 will come out before node 1 at cost 4.',
+        },
+        {
+          state: 'cost = 1  node = 2',
+          action: 'Pop (1, 2). Relax 2->1: 1 + 2 = 3 beats the 4 already stored, so dist[1] = 3 and (3,1) is pushed. Relax 2->3: dist[3] = 6 and (6,3) is pushed.',
+        },
+        {
+          state: 'dist = [0, 3, 1, 6]  heap = [(3, 1), (4, 1), (6, 3)]',
+          action: 'Node 1 is now in the heap twice, once at the old cost 4 and once at the new cost 3. That is expected, not a bug.',
+        },
+        {
+          state: 'cost = 3  node = 1',
+          action: 'Pop (3, 1). It equals dist[1], so it is the fresh copy. Relax 1->3: 3 + 1 = 4 < 6, so dist[3] = 4 and (4,3) is pushed.',
+        },
+        {
+          state: 'dist = [0, 3, 1, 4]  heap = [(4, 1), (4, 3), (6, 3)]',
+          action: 'Pop (4, 1). Now 4 > dist[1] = 3, so this is the stale copy and the loop skips it without touching a single edge.',
+        },
+        {
+          state: 'cost = 4  node = 3',
+          action: 'Pop (4, 3). It matches dist[3], and node 3 has no out-edges, so nothing changes.',
+        },
+        {
+          state: 'heap = [(6, 3)]',
+          action: 'Pop (6, 3): 6 > dist[3] = 4, so it is stale and skipped. The heap is now empty and the loop ends.',
+        },
+      ],
+      result:
+        'dist = [0, 3, 1, 4]. Node 1 is reached for 3 through node 2 (1 + 2), not for 4 by the direct edge, and node 3 costs 4 via 0 -> 2 -> 1 -> 3. Each node was correct the first time it was popped because every weight is at least 0, so no later path can undo a cost already paid.',
+    },
+    mistakes: [
+      {
+        mistake: 'Running BFS on a graph whose edges carry weights.',
+        why: 'BFS minimises the number of edges. In the example above it reaches node 1 in one hop and reports 4, missing the two-hop route that costs 3. The code runs and the answer looks reasonable.',
+        fix: 'Check the weights before choosing. Equal weights: BFS. Weights 0 and 1 only: 0-1 BFS with a deque. Any other non-negative weights: Dijkstra.',
+      },
+      {
+        mistake: 'Keeping a visited set in Dijkstra and refusing to push a node that is already in it.',
+        why: 'A node can be discovered at cost 4 and only later found at cost 3. Blocking the second push throws that improvement away, so the final distances are too large.',
+        fix: 'Never block a push. Guard the pop instead with "if cost > dist[node]: continue", which discards stale copies at no cost to correctness.',
+      },
+      {
+        mistake: 'Using Dijkstra when one edge is negative, or trying to fix it by adding a constant to every weight.',
+        why: 'Dijkstra settles a node the first time it is popped, which a later negative edge can invalidate. Shifting all weights up does not help either, because it penalises long paths more than short ones and changes which path wins.',
+        fix: 'Use Bellman-Ford at O(V * E). With V = 1000 and E = 5000 that is 5 million relaxations, which is fine.',
+      },
+      {
+        mistake: 'In Cheapest Flights Within K Stops, relaxing edges in place instead of from a snapshot of the previous round.',
+        why: 'Two edges of the same round can chain together, so one round advances a path by more than one flight and the k-stop limit is broken. The result is a cheaper price than the rules allow.',
+        fix: 'At the start of each round copy dist, read every "from" value out of the copy, and write only into the live array.',
+      },
+      {
+        mistake: 'Skipping the extra V-th round of Bellman-Ford, or forgetting to guard against dist[u] being infinity.',
+        why: 'Without the extra round a negative cycle is never reported. Without the infinity guard you add a weight to an unreachable node and create a fake finite distance, which in C++ or Java also overflows the integer.',
+        fix: 'Run one full extra pass; any edge that still improves proves a negative cycle reachable from the source. And skip an edge whenever dist[u] is still infinity.',
+      },
+    ],
+    whenToUse: [
+      'Minimum cost, time, delay or effort to get from A to B with non-negative weights: Dijkstra.',
+      'Every move costs exactly the same: plain BFS, no heap needed and no log factor.',
+      'Moves cost only 0 or 1, such as a free door versus breaking one wall: 0-1 BFS with a deque.',
+      'Weights can be negative, or the question limits you to at most k edges: Bellman-Ford.',
+      'The cost of a path is the largest edge on it rather than the sum: Dijkstra still works if you push max(cost so far, w).',
+    ],
+    whenNotToUse: [
+      'All edges cost the same: Dijkstra is correct but wastes a heap, and BFS does it in O(V + E).',
+      'A negative edge lies on some reachable path: Dijkstra can finish a node too early, so use Bellman-Ford.',
+      'You need every pair of distances on a small graph, V up to roughly 400: Floyd-Warshall in O(V^3) is simpler than V separate Dijkstra runs.',
+      'The graph is a DAG: relax edges in topological order for O(V + E), which is faster and allows negative weights.',
+      'You want the cheapest set of edges that keeps everything connected, not a route: that is a minimum spanning tree, so use Kruskal with union-find or Prim.',
+    ],
+    relatedTopics: [
+      { id: 'shortest-path', kind: 'pattern', why: 'This concept is the full write-up of that pattern across all four weight regimes.' },
+      { id: 'heap-basics', kind: 'concept', why: 'Dijkstra is BFS with the queue swapped for a min-heap, and the log V factor comes straight from heap push and pop.' },
+      { id: 'graph-representation-bfs-dfs', kind: 'concept', why: 'BFS already solves the unweighted case, and Dijkstra is the same loop with a different rule for what comes next.' },
+      { id: 'topological-sort', kind: 'concept', why: 'On a DAG you can relax edges in topological order and beat Dijkstra with O(V + E), negative weights included.' },
+      { id: 'queue-and-deque', kind: 'concept', why: '0-1 BFS needs a double-ended queue so that zero-weight moves can be pushed onto the front.' },
+    ],
+    quiz: [
+      {
+        question: 'The edges are 0->1 with weight 4, 0->2 with weight 1 and 2->1 with weight 2. What does BFS from node 0 report as the best cost to node 1?',
+        options: [
+          '4, because BFS reaches node 1 in one edge and counts edges rather than weights',
+          '3, the true cheapest cost',
+          '1, the weight of the first edge it takes',
+          'Infinity, because BFS cannot handle directed graphs',
+        ],
+        answerIndex: 0,
+        explanation:
+          'BFS treats every edge as costing 1, so it stops at node 1 after one hop and never considers the cheaper two-hop route. This is the single most common wrong choice in weighted problems.',
+      },
+      {
+        question: 'V = 100,000 and E = 200,000, all weights positive. Roughly what does Dijkstra with a binary heap cost?',
+        options: [
+          'O((V + E) log V), about 300,000 times 17, so roughly 5 million operations',
+          'O(V * E), about 20,000,000,000 operations',
+          'O(V^2), about 10,000,000,000 operations',
+          'O(V + E), about 300,000 operations, because a heap is O(1)',
+        ],
+        answerIndex: 0,
+        explanation:
+          'Each edge can cause one heap push and each push or pop is O(log V), giving O((V + E) log V). log2 of 100,000 is about 17, so this is very comfortable.',
+      },
+      {
+        question: 'One edge in your graph has weight -3. Can you still run Dijkstra by adding 3 to every weight first?',
+        options: [
+          'No: adding a constant charges a longer path more than a short one, so the winner can change; use Bellman-Ford at O(V * E)',
+          'Yes, shifting weights never changes which path is shortest',
+          'Yes, as long as you subtract 3 from the final answer',
+          'Yes, Dijkstra handles negative weights anyway',
+        ],
+        answerIndex: 0,
+        explanation:
+          'A path with 5 edges gains 15 while a path with 2 edges gains only 6, so the shift can flip the ranking. Negative weights need Bellman-Ford, or Johnson reweighting if you want all pairs.',
+      },
+      {
+        question: 'In a maze, walking through an open door costs 0 and breaking a wall costs 1. What is the right tool?',
+        options: [
+          '0-1 BFS: one deque, weight-0 neighbours pushed to the front and weight-1 to the back, O(V + E)',
+          'Plain BFS, because there are only two possible costs',
+          'Bellman-Ford, because the weights are small',
+          'Floyd-Warshall, because the maze is a grid',
+        ],
+        answerIndex: 0,
+        explanation:
+          'A deque keeps the frontier sorted by cost without a heap, so the run stays linear. Dijkstra also gives the right answer here, but it pays an unnecessary log factor.',
+      },
+      {
+        question: 'How does Bellman-Ford tell you that a negative cycle exists?',
+        options: [
+          'After V - 1 rounds it runs one more full pass; if any edge still lowers a distance, a negative cycle is reachable from the source',
+          'Some distance becomes a negative number',
+          'The queue empties before all nodes are settled',
+          'It cannot detect one, only Dijkstra can',
+        ],
+        answerIndex: 0,
+        explanation:
+          'Any shortest path uses at most V - 1 edges, so after V - 1 rounds nothing should improve. An improvement in the extra round can only come from going round a cycle whose total weight is negative.',
+      },
+    ],
+    sources: [
+      'CLRS ch. 24, Single-Source Shortest Paths',
+      'MIT 6.006: Dijkstra and Bellman-Ford lectures',
+      'MIT 6.046: Shortest Paths',
+      'CP-Algorithms: Dijkstra, Bellman-Ford, and 0-1 BFS',
+      'USACO Guide: Shortest Paths with Non-Negative and Negative Edge Weights',
+      'CSES Problem Set: Shortest Routes I and II, High Score',
+    ],
     patternIds: ['shortest-path', 'bfs'],
     problems: [
       {
@@ -2503,6 +2791,288 @@ public:
       'union returning False means the edge closes a cycle.',
       'Track a groups counter to answer "how many components" instantly.',
       'Map strings or emails to integer ids before using DSU.',
+    ],
+    definition:
+      'A disjoint set union structure, also called union-find or DSU, keeps a collection of items split into groups that never overlap. It offers two operations: find(x) returns the representative of the group holding x, and union(a, b) merges the group of a with the group of b.',
+    coreIdea:
+      'A group only needs one name, and that name can be a single node everyone in the group points toward. Because the identity of a group never has to be recomputed from its edges, merging two groups is a single pointer write instead of a traversal. Path compression flattens every chain you walk over, and union by size or rank stops tall trees forming, so both operations end up costing O(alpha(n)) amortised, which is a small constant for every input that fits in a computer.',
+    visual: [
+      {
+        caption: 'Six nodes, each alone. parent[x] = x means x is its own root.',
+        frame: [
+          'node   : 0  1  2  3  4  5',
+          'parent : 0  1  2  3  4  5',
+          'size   : 1  1  1  1  1  1',
+          'groups : 6',
+          '',
+          '0    1    2    3    4    5',
+        ].join('\n'),
+      },
+      {
+        caption: 'union(0, 1). The roots 0 and 1 differ, sizes are equal, so 1 is hung under 0.',
+        frame: [
+          'node   : 0  1  2  3  4  5',
+          'parent : 0  0  2  3  4  5',
+          'size   : 2  1  1  1  1  1',
+          'groups : 5',
+          '',
+          '0 --- 1    2    3    4    5',
+        ].join('\n'),
+      },
+      {
+        caption: 'union(2, 3) does the same on the other pair. Two pairs and two singletons remain.',
+        frame: [
+          'node   : 0  1  2  3  4  5',
+          'parent : 0  0  2  2  4  5',
+          'size   : 2  1  2  1  1  1',
+          'groups : 4',
+          '',
+          '0 --- 1    2 --- 3    4    5',
+        ].join('\n'),
+      },
+      {
+        caption: 'union(1, 3) links the two ROOTS, not the two nodes: find(1) = 0 and find(3) = 2, so 2 goes under 0.',
+        frame: [
+          'node   : 0  1  2  3  4  5',
+          'parent : 0  0  0  2  4  5',
+          'size   : 4  1  2  1  1  1',
+          'groups : 3',
+          '',
+          '0 -+- 1              4    5',
+          '   +- 2 --- 3',
+        ].join('\n'),
+      },
+      {
+        caption: 'union(4, 5), then find(3). The walk 3 -> 2 -> 0 rewrites parent[3] to 0 on the way, so the next find(3) is one step.',
+        frame: [
+          'node   : 0  1  2  3  4  5',
+          'parent : 0  0  0  0  4  4',
+          'size   : 4  1  2  1  2  1',
+          'groups : 2',
+          '',
+          '0 -+- 1              4 --- 5',
+          '   +- 2',
+          '   +- 3',
+        ].join('\n'),
+      },
+      {
+        caption: 'union(0, 2) finds the same root twice and returns false. That edge joins two nodes that were already together, so it closes a cycle.',
+        frame: [
+          'find(0) = 0     find(2) = 0     same root',
+          'union returns false, nothing changes',
+          'groups : 2',
+          '',
+          'components: {0, 1, 2, 3}  and  {4, 5}',
+        ].join('\n'),
+      },
+    ],
+    pseudocode: `function makeSet(n):
+    parent = array where parent[i] = i for every i
+    size   = array of n ones
+    groups = n
+
+function find(x):                        // with path halving
+    while parent[x] is not x:
+        parent[x] = parent[parent[x]]    // skip a level, flatten as you go
+        x = parent[x]
+    return x
+
+function union(a, b):
+    ra = find(a)
+    rb = find(b)
+    if ra is rb:
+        return false          // already together, so this edge makes a cycle
+    if size[ra] < size[rb]:
+        swap ra and rb        // union by size: hang the smaller under the bigger
+    parent[rb] = ra
+    size[ra] = size[ra] + size[rb]
+    groups = groups - 1
+    return true
+
+function connected(a, b):
+    return find(a) is find(b)`,
+    complexity: [
+      {
+        label: 'find or union, compression AND union by size',
+        time: 'O(alpha(n)) amortised, effectively O(1)',
+        space: 'O(n)',
+        note: 'alpha is the inverse Ackermann function; it stays below 5 for any n you could ever store',
+      },
+      {
+        label: 'find or union, union by size only',
+        time: 'O(log n) worst case',
+        space: 'O(n)',
+        note: 'a tree of k nodes has height at most log2(k) when the smaller side always goes under',
+      },
+      {
+        label: 'find or union, neither trick',
+        time: 'O(n) worst case',
+        space: 'O(n)',
+        note: 'unioning 0-1, 1-2, 2-3 ... builds a chain that find must walk end to end',
+      },
+      {
+        label: 'Process m edges over n nodes',
+        time: 'O(n + m * alpha(n)), which is about O(n + m)',
+        space: 'O(n)',
+        note: 'one union per edge, plus the initial arrays',
+      },
+    ],
+    dryRun: {
+      input: 'n = 6, and the edges (0,1), (2,3), (1,3), (4,5), (0,2) arriving in that order',
+      goal: 'Count how many separate groups remain and spot the edge that closes a cycle, following the DSU class from the optimised code.',
+      steps: [
+        {
+          state: 'parent = [0,1,2,3,4,5]  size = [1,1,1,1,1,1]  groups = 6',
+          action: 'Everyone starts alone, so every node is its own root.',
+        },
+        {
+          state: 'union(0,1): ra = 0, rb = 1',
+          action: 'The roots differ. size[0] is not less than size[1], so no swap happens: parent[1] = 0, size[0] = 2, groups drops to 5.',
+        },
+        {
+          state: 'union(2,3): ra = 2, rb = 3',
+          action: 'Same story on the second pair: parent[3] = 2, size[2] = 2, groups drops to 4.',
+        },
+        {
+          state: 'parent = [0,0,2,2,4,5]  size = [2,1,2,1,1,1]  groups = 4',
+          action: 'The picture is now two pairs and two lone nodes.',
+        },
+        {
+          state: 'union(1,3): find(1) = 0, find(3) = 2',
+          action: 'Both sizes are 2, so no swap: parent[2] = 0, size[0] = 4, groups drops to 3. Notice we linked the roots 0 and 2, never the nodes 1 and 3.',
+        },
+        {
+          state: 'union(4,5): ra = 4, rb = 5',
+          action: 'parent[5] = 4, size[4] = 2, groups drops to 2.',
+        },
+        {
+          state: 'find(3) is called  parent = [0,0,0,2,4,4]',
+          action: 'The walk goes 3 -> 2 -> 0. Path halving rewrites parent[3] to 0 on the way, so parent becomes [0,0,0,0,4,4] and the next find(3) takes a single step.',
+        },
+        {
+          state: 'union(0,2): find(0) = 0, find(2) = 0',
+          action: 'The two roots are equal, so union returns False and changes nothing. This fifth edge joins two nodes already in one group, so it closes a cycle.',
+        },
+      ],
+      result:
+        'groups = 2, namely {0, 1, 2, 3} and {4, 5}, and edge (0,2) is the redundant one. The count is right because groups started at 6 and was decremented exactly once for each of the four unions that really merged two different roots.',
+    },
+    mistakes: [
+      {
+        mistake: 'Writing parent[a] = b inside union instead of parent[find(a)] = find(b).',
+        why: 'It hangs one node under another but leaves the two old roots untouched, so the groups are not actually merged. Later find calls return two different roots for nodes that should be together, and every answer built on that is wrong.',
+        fix: 'Always compute both roots first and link one root to the other. Never touch a non-root parent pointer outside of path compression.',
+      },
+      {
+        mistake: 'Testing connectivity with parent[a] == parent[b].',
+        why: 'Two nodes in the same group can sit at different depths, so their immediate parents differ even though their roots match. The test reports "not connected" for nodes that clearly are.',
+        fix: 'The only correct test is find(a) == find(b). Compare roots, never parents.',
+      },
+      {
+        mistake: 'Implementing DSU with neither path compression nor union by size.',
+        why: 'Unioning (0,1), (1,2), (2,3) and so on builds a chain of n nodes, so each later find walks the whole chain. With 100,000 operations that is billions of steps and a guaranteed timeout.',
+        fix: 'Add both. They are three extra lines in total and they are what turns O(n) per call into O(alpha(n)).',
+      },
+      {
+        mistake: 'Decrementing the group counter on every call to union rather than only when the roots differ.',
+        why: 'Redundant edges, which are common in these problems, then subtract from the count too. Number of Provinces comes out too small and can even go negative.',
+        fix: 'Return early with false when ra == rb, and put the groups decrement after that check.',
+      },
+      {
+        mistake: 'Trying to use DSU directly on strings such as emails or account names.',
+        why: 'The parent and size arrays are indexed by integer, so string keys either crash or force a dictionary lookup in the hot loop, which quietly loses the constant-time behaviour.',
+        fix: 'Build one dictionary from item to a fresh integer id first, run DSU over the ids, then map the roots back to items at the end.',
+      },
+    ],
+    whenToUse: [
+      'Edges arrive one at a time and you must answer "are these two connected?" in between.',
+      'Count connected components, provinces or groups after merging a list of pairs.',
+      'Find which edge creates a cycle, or which edge can be removed to leave a tree.',
+      "Kruskal's minimum spanning tree: sort edges by weight and keep the ones that join two different groups.",
+      'Merge identities: accounts sharing an email, similar strings, cells joined into one region.',
+    ],
+    whenNotToUse: [
+      'You need the actual path between two nodes, not just whether one exists: DSU stores no paths, so use BFS or DFS.',
+      'Edges are deleted as well as added: a plain DSU cannot undo a union, so use a rollback DSU without path compression, or rebuild with DFS.',
+      'The graph is directed and the direction matters: DSU can only express the undirected idea of "same group".',
+      'You need distances or a cheapest route: use BFS, 0-1 BFS or Dijkstra.',
+      "You need an order that respects dependencies: use Kahn's topological sort, since DSU cannot express \"before\".",
+    ],
+    relatedTopics: [
+      { id: 'union-find', kind: 'pattern', why: 'This concept is the full write-up of that pattern, including both optimisations.' },
+      { id: 'graph-representation-bfs-dfs', kind: 'concept', why: 'DFS also counts components, but only for a graph that is fully known before the walk starts.' },
+      { id: 'grid-graphs', kind: 'concept', why: 'Islands can be counted by unioning each land cell with its right and down neighbours instead of flood filling.' },
+      { id: 'greedy-basics', kind: 'concept', why: "Kruskal's minimum spanning tree is a greedy algorithm whose \"does this edge help?\" test is exactly a DSU find." },
+      { id: 'hash-map-basics', kind: 'concept', why: 'Non-integer items such as emails need a hash map from item to index before an array-based DSU can hold them.' },
+    ],
+    quiz: [
+      {
+        question: 'With both path compression and union by size, what does one find cost?',
+        options: [
+          'O(alpha(n)) amortised, where alpha stays under 5 for any realistic n, so treat it as constant',
+          'O(log n) on every call, always',
+          'O(1) in the worst case, guaranteed for every single call',
+          'O(n), because the parent chain can be that long',
+        ],
+        answerIndex: 0,
+        explanation:
+          'The classic result is O(alpha(n)) amortised per operation when both tricks are used. It is amortised, not worst case: one unlucky find can still walk several links before compression flattens the path.',
+      },
+      {
+        question: 'What does alpha(n), the inverse Ackermann function, actually mean in practice here?',
+        options: [
+          'It grows so slowly that it stays below 5 even for n larger than the number of atoms in the universe, so each operation is a handful of array reads',
+          'It is a fixed constant equal to 4 for all inputs',
+          'It is another name for log log n',
+          'It means each individual call is O(1) in the worst case',
+        ],
+        answerIndex: 0,
+        explanation:
+          'Alpha is the inverse of a function that grows unimaginably fast, so its value is tiny for any input a computer can hold. Saying DSU is "effectively constant time" is fair, as long as you know the bound is amortised.',
+      },
+      {
+        question: 'union(a, b) returns false. What have you just learned?',
+        options: [
+          'a and b were already in the same group, so this edge closes a cycle',
+          'The merge failed because of a bug in the parent array',
+          'a and b are in different groups and could not be merged',
+          'One of a or b is outside the range of the array',
+        ],
+        answerIndex: 0,
+        explanation:
+          'False means find(a) == find(b) before the call. That is exactly the test behind Redundant Connection, Graph Valid Tree, and the edge filter inside Kruskal.',
+      },
+      {
+        question: 'You must answer connectivity queries while edges are also being deleted. Is a plain DSU the right tool?',
+        options: [
+          'No: a union cannot be undone, so use a rollback DSU without path compression, or rebuild the components with DFS',
+          'Yes, just reset the parent pointer of one endpoint',
+          'Yes, DSU supports deletion in O(alpha(n)) as well',
+          'No, and nothing else can solve this either',
+        ],
+        answerIndex: 0,
+        explanation:
+          'Path compression destroys the history needed to undo a merge. Rollback DSU keeps a stack of changes and skips compression, which costs O(log n) per operation but supports undo.',
+      },
+      {
+        question: 'A graph has 100,000 nodes and 200,000 edges given as a list. What does counting the components with DSU cost?',
+        options: [
+          'About O(n + m), roughly 300,000 near-constant operations',
+          'O(n * m), about 20,000,000,000 operations',
+          'O(m log m), because the edges must be sorted first',
+          'O(n^2), because every pair of nodes must be compared',
+        ],
+        answerIndex: 0,
+        explanation:
+          'Setting up the arrays is O(n) and each edge triggers one union at O(alpha(n)). Sorting is only needed for Kruskal, where the weights matter, not for plain component counting.',
+      },
+    ],
+    sources: [
+      'CLRS ch. 21, Data Structures for Disjoint Sets',
+      'MIT 6.046: Amortised Analysis',
+      'CP-Algorithms: Disjoint Set Union',
+      'USACO Guide: Disjoint Set Union',
+      'Tarjan and van Leeuwen, worst-case analysis of set union algorithms',
     ],
     patternIds: ['union-find', 'dfs'],
     problems: [

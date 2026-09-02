@@ -214,6 +214,7 @@ public:
         patternId: 'two-pointers',
         hint: 'Use a dummy node and a prev pointer; skip prev.next whenever its value matches.',
         xp: 20,
+        tier: 'beginner',
       },
       {
         id: 'remove-duplicates-from-sorted-list',
@@ -223,6 +224,7 @@ public:
         patternId: 'two-pointers',
         hint: 'Because the list is sorted, duplicates are neighbours: while cur.next.val equals cur.val, skip cur.next.',
         xp: 20,
+        tier: 'beginner',
       },
       {
         id: 'delete-node-in-a-linked-list',
@@ -232,6 +234,7 @@ public:
         patternId: 'two-pointers',
         hint: 'You cannot reach the previous node, so copy the next node value into this one and skip the next node instead.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'design-linked-list',
@@ -241,6 +244,7 @@ public:
         patternId: 'two-pointers',
         hint: 'Keep a dummy head and a size counter; every operation walks to the node just before the target index.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'remove-nth-node-from-end-of-list',
@@ -250,7 +254,240 @@ public:
         patternId: 'fast-slow-pointers',
         hint: 'Move a fast pointer n + 1 steps ahead of a slow pointer starting at a dummy; when fast hits None, slow is right before the node to remove.',
         xp: 40,
+        tier: 'advanced',
       },
+    ],
+    definition:
+      'A linked list is a sequence of nodes where each node stores a value and a reference to the next node, and the list as a whole is known only through its first node, the head. The last node points to None, which is what marks the end.',
+    coreIdea:
+      'An array stores positions; a linked list stores directions. Because a node only has to know who comes next, you can insert or delete by rewriting one or two references instead of shifting every element after it, so those edits cost O(1) instead of O(n). The price is that you lose random access: reaching the k-th node costs k hops, so there is no O(1) indexing and no binary search.',
+    visual: [
+      {
+        caption: 'Three nodes. The head pointer is the only way in.',
+        frame: [
+          'head',
+          ' |',
+          ' v',
+          ' 1 -> 2 -> 3 -> None',
+          'lose the head and the whole list is gone',
+        ].join('\n'),
+      },
+      {
+        caption: 'Walking is one hop at a time. Node 3 costs three hops.',
+        frame: [
+          'step 1:  1 -> 2 -> 3 -> None',
+          '         ^cur',
+          'step 2:  1 -> 2 -> 3 -> None',
+          '              ^cur',
+          'step 3:  1 -> 2 -> 3 -> None',
+          '                   ^cur',
+          'step 4:  cur is None, stop',
+        ].join('\n'),
+      },
+      {
+        caption: 'Insert 9 after node 2. First point the new node at node 3.',
+        frame: [
+          'before:  1 -> 2 -> 3 -> None',
+          '              ^prev',
+          'step A:  new.next = prev.next',
+          '         1 -> 2 -> 3 -> None',
+          '              9 ---^',
+        ].join('\n'),
+      },
+      {
+        caption: 'Then point node 2 at the new node. Two writes, nothing moved.',
+        frame: [
+          'step B:  prev.next = new',
+          '         1 -> 2 -> 9 -> 3 -> None',
+          '',
+          'no data was shifted, so the cost is O(1)',
+        ].join('\n'),
+      },
+      {
+        caption: 'Delete is one write: skip over the node you no longer want.',
+        frame: [
+          'delete the node after prev (value 9)',
+          '         1 -> 2 -> 9 -> 3 -> None',
+          '              ^prev',
+          'prev.next = prev.next.next',
+          '         1 -> 2 -> 3 -> None',
+          'the 9 node is now unreachable',
+        ].join('\n'),
+      },
+      {
+        caption: 'A dummy node in front makes deleting the head an ordinary case.',
+        frame: [
+          '         D -> 1 -> 2 -> 3 -> None',
+          '         ^prev',
+          'prev.next = prev.next.next',
+          '         D -> 2 -> 3 -> None',
+          'return dummy.next  ->  2 -> 3 -> None',
+        ].join('\n'),
+      },
+    ],
+    pseudocode: `function removeValue(head, x):
+    dummy = new Node(0)
+    dummy.next = head
+    prev = dummy
+    while prev.next is not empty:
+        if prev.next.value equals x:
+            prev.next = prev.next.next   // unlink, do NOT advance
+        else:
+            prev = prev.next             // keep it, move on
+    return dummy.next`,
+    complexity: [
+      { label: 'Reach the k-th node', time: 'O(k)', space: 'O(1)', note: 'no index, you hop from the head' },
+      { label: 'Insert after a node you hold', time: 'O(1)', space: 'O(1)', note: 'two pointer writes' },
+      { label: 'Delete the node after one you hold', time: 'O(1)', space: 'O(1)', note: 'one pointer write' },
+      { label: 'Search for a value', time: 'O(n)', space: 'O(1)', note: 'scan from the head' },
+      { label: 'Remove every node with value x', time: 'O(n)', space: 'O(1)', note: 'one pass with a dummy node' },
+    ],
+    dryRun: {
+      input: 'head = 1 -> 2 -> 6 -> 3 -> 6 -> None, x = 6',
+      goal: 'Remove every node whose value is 6, changing pointers only.',
+      steps: [
+        {
+          state: 'list = D -> 1 -> 2 -> 6 -> 3 -> 6, prev = D',
+          action: 'prev.next is node 1 and 1 is not 6, so keep it and move prev to node 1.',
+        },
+        {
+          state: 'prev = node 1',
+          action: 'prev.next is node 2 and 2 is not 6, so move prev to node 2.',
+        },
+        {
+          state: 'prev = node 2',
+          action: 'prev.next is a 6. Set prev.next = prev.next.next so node 2 now points at node 3. prev deliberately stays put.',
+        },
+        {
+          state: 'list = D -> 1 -> 2 -> 3 -> 6, prev = node 2',
+          action: 'prev.next is node 3, which is not 6, so move prev to node 3.',
+        },
+        {
+          state: 'prev = node 3',
+          action: 'prev.next is the last 6. Unlink it, so prev.next becomes None. prev stays put again.',
+        },
+        {
+          state: 'list = D -> 1 -> 2 -> 3 -> None, prev = node 3',
+          action: 'prev.next is None, so the while loop ends.',
+        },
+      ],
+      result:
+        'Return dummy.next, which is 1 -> 2 -> 3 -> None. It is correct because prev only advances past a node we decided to keep, so every node was inspected exactly once and no match could be skipped.',
+    },
+    mistakes: [
+      {
+        mistake: 'Unlinking a node and then advancing prev in the same iteration.',
+        why: 'The node that just became prev.next is never tested, so two matching values in a row (6 -> 6) leave the second one in the list.',
+        fix: 'Advance prev only in the else branch. After an unlink, loop again with the same prev.',
+      },
+      {
+        mistake: 'Writing cur.next = something before saving nxt = cur.next.',
+        why: 'cur.next is the only reference to the rest of the list. Once you overwrite it, everything after cur is unreachable.',
+        fix: 'The order is always save, rewire, advance: nxt = cur.next, then change cur.next, then cur = nxt.',
+      },
+      {
+        mistake: 'Handling deletion of the head with a special if branch instead of a dummy node.',
+        why: 'The logic is duplicated, and the case where every node must be removed is easy to get wrong, returning a stale head.',
+        fix: 'Put a dummy node before the head, work only through prev, and return dummy.next.',
+      },
+      {
+        mistake: 'Testing cur.next.next before testing cur.next.',
+        why: 'On a one-node list cur.next is None, so reading .next on it raises AttributeError. Conditions are evaluated left to right.',
+        fix: 'Check pointers in order: cur, then cur.next, then cur.next.next.',
+      },
+      {
+        mistake: 'Assuming len(head) or head[2] works on a linked list.',
+        why: 'A linked list stores no length and supports no indexing. Both need a walk from the head.',
+        fix: 'Count with a loop if you need the length, or use a two-pointer gap when you need a position measured from the end.',
+      },
+    ],
+    whenToUse: [
+      'The problem hands you a head pointer and asks you to change the structure, not the values.',
+      'You insert or delete in the middle far more often than you look up by position.',
+      'You need O(1) splicing, for example moving a node inside an LRU cache.',
+      'The data must grow without a fixed capacity and without copying on resize.',
+      'Nodes must keep their identity because other code holds references to them.',
+    ],
+    whenNotToUse: [
+      'You need the k-th element quickly; use an array or Python list, where indexing is O(1).',
+      'You want to binary search the data; that needs O(1) indexing, so copy into an array first.',
+      'You only append at the end and read; a dynamic array is faster and uses less memory per element.',
+      'You often need the previous node; use a doubly linked list, or carry a prev pointer as you walk.',
+      'Tight numeric loops where cache locality matters; array elements sit together in memory, nodes do not.',
+    ],
+    relatedTopics: [
+      { id: 'reversal-and-middle', kind: 'concept', why: 'Reversal is the save-then-rewire step from this page applied to every node in turn.' },
+      { id: 'cycle-detection', kind: 'concept', why: 'It assumes you can already walk a list safely with the right None checks.' },
+      { id: 'lru-cache', kind: 'concept', why: 'An LRU cache is a hash map plus a doubly linked list and lives on O(1) unlinking.' },
+      { id: 'arrays-basics', kind: 'concept', why: 'The direct trade-off: arrays give O(1) indexing, linked lists give O(1) splicing.' },
+      { id: 'two-pointers', kind: 'pattern', why: 'A prev and cur pair walking one list is the linked-list form of two pointers.' },
+    ],
+    quiz: [
+      {
+        question: 'You already hold a pointer to node p in the middle of a singly linked list. What does inserting a new node right after p cost?',
+        options: [
+          'O(1), because only two next pointers change',
+          'O(n), because the nodes after p must shift along',
+          'O(log n), because the list is halved',
+          'O(n), because the length has to be recomputed',
+        ],
+        answerIndex: 0,
+        explanation:
+          'Nothing moves in memory. You set new.next = p.next and then p.next = new. Getting to p may have been slow, but the insert itself is constant.',
+      },
+      {
+        question: 'What is wrong with this loop: cur = head; while cur: cur.next = prev; prev = cur; cur = cur.next',
+        options: [
+          'Nothing, it reverses the list correctly',
+          'cur.next was already overwritten, so cur = cur.next walks backwards instead of forwards',
+          'prev should start at head',
+          'It only fails on an empty list',
+        ],
+        answerIndex: 1,
+        explanation: 'By the time cur = cur.next runs, cur.next points at prev. Save the next node before rewiring.',
+      },
+      {
+        question: 'You must answer 1000 queries of the form "give me the element at index i" on a list of 100000 nodes. What does each query cost on a linked list?',
+        options: [
+          'O(1), the same as an array',
+          'O(n), because each query walks from the head, which is about 100 million hops in total',
+          'O(log n), using binary search',
+          'O(n log n)',
+        ],
+        answerIndex: 1,
+        explanation:
+          'A linked list has no indexing. If you need many index lookups, copy the values into an array once and pay O(1) per query afterwards.',
+      },
+      {
+        question: 'Why does a dummy node help when you are deleting nodes?',
+        options: [
+          'It makes the list circular',
+          'It gives every real node a predecessor, so removing the head needs no special case',
+          'It speeds up traversal',
+          'It stores the length of the list',
+        ],
+        answerIndex: 1,
+        explanation:
+          'With a dummy in front, the head is just prev.next like any other node. You return dummy.next at the end, which is correct even if everything was removed.',
+      },
+      {
+        question: 'You are given only a pointer to the node you must delete, not the head, and it is not the last node. Does prev.next = prev.next.next work?',
+        options: [
+          'Yes, prev is reachable in O(1)',
+          'No, but you can copy the next value into this node and then unlink the next node',
+          'No, deletion is impossible without the head',
+          'Yes, because singly linked nodes store a prev pointer',
+        ],
+        answerIndex: 1,
+        explanation:
+          'You cannot reach the predecessor, so you overwrite this node with its successor and skip the successor. The trick fails only for the final node, which is why the problem excludes it.',
+      },
+    ],
+    sources: [
+      'CLRS ch. 10 (elementary data structures)',
+      'MIT 6.006: Data Structures and Dynamic Arrays',
+      'VisuAlgo: Linked List',
+      'Python documentation: data structures and list performance',
     ],
   },
   {
@@ -461,6 +698,7 @@ public:
         patternId: 'in-place-reversal',
         hint: 'Three pointers: prev, cur, nxt. Flip one arrow per step.',
         xp: 20,
+        tier: 'beginner',
       },
       {
         id: 'middle-of-the-linked-list',
@@ -470,6 +708,7 @@ public:
         patternId: 'fast-slow-pointers',
         hint: 'Move slow one step and fast two steps; stop when fast or fast.next is None.',
         xp: 20,
+        tier: 'beginner',
       },
       {
         id: 'palindrome-linked-list',
@@ -479,6 +718,7 @@ public:
         patternId: 'fast-slow-pointers',
         hint: 'Find the middle, reverse the second half, then compare the two halves node by node.',
         xp: 20,
+        tier: 'intermediate',
       },
       {
         id: 'swap-nodes-in-pairs',
@@ -488,6 +728,7 @@ public:
         patternId: 'in-place-reversal',
         hint: 'Use a dummy node and, for each pair, rewire prev -> second -> first -> rest before moving prev two steps.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'reverse-linked-list-ii',
@@ -497,6 +738,7 @@ public:
         patternId: 'in-place-reversal',
         hint: 'Walk to the node before position left, reverse exactly right - left + 1 nodes, then reconnect both ends.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'reorder-list',
@@ -506,6 +748,7 @@ public:
         patternId: 'fast-slow-pointers',
         hint: 'Find the middle, reverse the second half, then merge the two halves by alternating nodes.',
         xp: 40,
+        tier: 'advanced',
       },
       {
         id: 'reverse-nodes-in-k-group',
@@ -515,7 +758,224 @@ public:
         patternId: 'in-place-reversal',
         hint: 'Check that k nodes remain before reversing a group; reverse it with the standard loop and connect the previous group tail to the new head.',
         xp: 80,
+        tier: 'advanced',
       },
+    ],
+    definition:
+      'Reversing a linked list in place means flipping every next pointer so it points at the previous node, using only three variables and no new nodes. Finding the middle means running one pointer at double speed, so that when the fast one reaches the end the slow one sits at the halfway node.',
+    coreIdea:
+      'A node only needs to know its new successor, so you can flip one arrow at a time as you walk, provided you save the old next pointer before you overwrite it. That turns reversal into a single pass with three variables instead of a copy of the whole list. The same idea of walking at two speeds finds the middle in one pass: after k rounds slow is at position k and fast is at position 2k, so fast reaching the end puts slow exactly halfway.',
+    visual: [
+      {
+        caption: 'Start. prev is None, cur is the head, nothing flipped yet.',
+        frame: [
+          'list   1 -> 2 -> 3 -> None',
+          '       ^cur',
+          'prev = None      nxt = -',
+        ].join('\n'),
+      },
+      {
+        caption: 'Step 1: save nxt = 2, flip node 1 back to None, slide both.',
+        frame: [
+          'save   1 -> 2 -> 3 -> None',
+          '       ^cur ^nxt',
+          'flip   None <- 1     2 -> 3 -> None',
+          'slide  prev = 1, cur = 2',
+        ].join('\n'),
+      },
+      {
+        caption: 'Step 2: save nxt = 3, flip node 2 back to node 1, slide both.',
+        frame: [
+          'now    None <- 1     2 -> 3 -> None',
+          '               ^prev ^cur',
+          'save   nxt = node 3',
+          'flip   None <- 1 <- 2     3 -> None',
+          'slide  prev = 2, cur = 3',
+        ].join('\n'),
+      },
+      {
+        caption: 'Step 3: save nxt = None, flip node 3 back to node 2, slide both.',
+        frame: [
+          'now    None <- 1 <- 2     3 -> None',
+          '                    ^prev ^cur',
+          'save   nxt = None',
+          'flip   None <- 1 <- 2 <- 3',
+          'slide  prev = 3, cur = None',
+        ].join('\n'),
+      },
+      {
+        caption: 'cur is None, so the loop ends and prev is the new head.',
+        frame: [
+          'result 3 -> 2 -> 1 -> None',
+          '       ^prev is what we return',
+          '',
+          'three variables, zero new nodes, one pass',
+        ].join('\n'),
+      },
+      {
+        caption: 'Finding the middle of five nodes: slow moves 1, fast moves 2.',
+        frame: [
+          'list   1 -> 2 -> 3 -> 4 -> 5 -> None',
+          'start    slow = 1   fast = 1',
+          'round 1  slow = 2   fast = 3',
+          'round 2  slow = 3   fast = 5',
+          'check    fast.next is None  ->  stop',
+          'slow = 3, the middle node',
+        ].join('\n'),
+      },
+    ],
+    pseudocode: `function reverse(head):
+    prev = empty
+    cur = head
+    while cur is not empty:
+        nxt = cur.next        // save before overwriting
+        cur.next = prev       // flip the arrow
+        prev = cur            // slide prev forward
+        cur = nxt             // slide cur forward
+    return prev               // old tail is the new head
+
+function middle(head):
+    slow = head
+    fast = head
+    while fast is not empty and fast.next is not empty:
+        slow = slow.next
+        fast = fast.next.next
+    return slow               // second middle when length is even`,
+    complexity: [
+      { label: 'Iterative reverse', time: 'O(n)', space: 'O(1)', note: 'one pass, three variables' },
+      { label: 'Recursive reverse', time: 'O(n)', space: 'O(n)', note: 'the call stack is n frames deep' },
+      { label: 'Find the middle', time: 'O(n)', space: 'O(1)', note: 'fast walks n while slow walks n/2' },
+      { label: 'Palindrome check in place', time: 'O(n)', space: 'O(1)', note: 'middle, reverse half, compare' },
+      { label: 'Reverse in groups of k', time: 'O(n)', space: 'O(1)', note: 'every node is flipped exactly once' },
+    ],
+    dryRun: {
+      input: 'head = 1 -> 2 -> 3 -> None',
+      goal: 'Reverse the list in place and return the new head.',
+      steps: [
+        {
+          state: 'prev = None, cur = node 1, list = 1 -> 2 -> 3 -> None',
+          action: 'cur is not None, so enter the loop and save nxt = cur.next = node 2.',
+        },
+        {
+          state: 'prev = None, cur = node 1, nxt = node 2',
+          action: 'cur.next = prev makes node 1 point at None. Then prev = node 1 and cur = node 2.',
+        },
+        {
+          state: 'prev = node 1, cur = node 2, done so far: None <- 1',
+          action: 'Save nxt = node 3, flip node 2 to point at node 1, then prev = node 2 and cur = node 3.',
+        },
+        {
+          state: 'prev = node 2, cur = node 3, done so far: None <- 1 <- 2',
+          action: 'Save nxt = None, flip node 3 to point at node 2, then prev = node 3 and cur = None.',
+        },
+        {
+          state: 'prev = node 3, cur = None',
+          action: 'cur is None, so the while loop ends.',
+        },
+      ],
+      result:
+        'Return prev, which is 3 -> 2 -> 1 -> None. Every node was visited once and every arrow flipped once, and prev holds the last node processed, which was the original tail.',
+    },
+    mistakes: [
+      {
+        mistake: 'Returning head after the reversal loop instead of prev.',
+        why: 'head is now the tail and its next is None, so the caller receives a list of one node.',
+        fix: 'Return prev. When the loop exits cur is None and prev is the node you just finished flipping.',
+      },
+      {
+        mistake: 'Writing cur.next = prev before saving nxt = cur.next.',
+        why: 'The only reference to the rest of the list is destroyed, so the loop finishes after one node.',
+        fix: 'Keep the order: save, flip, slide prev, slide cur.',
+      },
+      {
+        mistake: 'Guarding the middle loop with while fast.next and fast.',
+        why: 'Conditions are evaluated left to right, so on an even-length list fast becomes None and reading fast.next raises an error.',
+        fix: 'Write while fast and fast.next, in that order.',
+      },
+      {
+        mistake: 'Assuming slow lands on the first middle when the length is even.',
+        why: 'With slow and fast both starting at head, a four-node list leaves slow on node 3, the second middle. Split code that expects the first middle then cuts in the wrong place.',
+        fix: 'Start fast at head.next, or loop while fast.next and fast.next.next, when you need the first middle.',
+      },
+      {
+        mistake: 'For a palindrome check, comparing until both halves reach None.',
+        why: 'On an odd length the two halves differ by one node, so the loop reads past the end of the shorter half.',
+        fix: 'Loop only while the reversed second half still has nodes. The extra middle node never needs a partner.',
+      },
+    ],
+    whenToUse: [
+      'The statement says reverse, and adds in place or O(1) extra space.',
+      'You must compare the front of a list with its back, as in palindrome or reorder problems.',
+      'You need the middle node in one pass without first computing the length.',
+      'You must process nodes in fixed groups, as in reverse nodes in k-group.',
+      'You need the list read backwards but are not allowed to copy the values out.',
+    ],
+    whenNotToUse: [
+      'Copying values is allowed and clarity matters more; push values into an array and read it backwards.',
+      'The list is doubly linked; just walk it from the tail, no flipping needed.',
+      'You only need the k-th node from the end once; a two-pointer gap is simpler than reversing.',
+      'The caller still needs the original list; reversal mutates the input in place.',
+      'The data is an array, not a list; swap with two indexes moving inward instead.',
+    ],
+    relatedTopics: [
+      { id: 'linked-list-basics', kind: 'concept', why: 'Reversal is the save-then-rewire step from the basics repeated for every node.' },
+      { id: 'cycle-detection', kind: 'concept', why: 'It uses the same fast and slow pair, but to catch a loop rather than find a midpoint.' },
+      { id: 'merging-lists', kind: 'concept', why: 'Reorder List splits at the middle, reverses the tail, then merges the two halves.' },
+      { id: 'in-place-reversal', kind: 'pattern', why: 'This page is the canonical implementation of that pattern.' },
+      { id: 'fast-slow-pointers', kind: 'pattern', why: 'Finding the middle is the simplest possible use of the two-speed walk.' },
+    ],
+    quiz: [
+      {
+        question: 'After the loop while cur: nxt = cur.next; cur.next = prev; prev = cur; cur = nxt, what should the function return?',
+        options: ['head', 'cur', 'prev', 'nxt'],
+        answerIndex: 2,
+        explanation: 'cur is None once the loop exits. prev holds the last node processed, which is the original tail and therefore the new head.',
+      },
+      {
+        question: 'What are the time and space costs of the iterative in-place reversal of an n-node list?',
+        options: [
+          'O(n) time, O(n) space',
+          'O(n) time, O(1) space',
+          'O(n log n) time, O(1) space',
+          'O(n^2) time, O(1) space',
+        ],
+        answerIndex: 1,
+        explanation: 'One pass over the nodes, and only prev, cur and nxt are stored, no matter how large n is.',
+      },
+      {
+        question: 'On 1 -> 2 -> 3 -> 4 -> None with slow = fast = head and the loop while fast and fast.next, where does slow stop?',
+        options: ['node 2', 'node 3', 'node 4', 'It raises an error'],
+        answerIndex: 1,
+        explanation: 'After two rounds slow is at node 3 and fast is None. This loop returns the second middle when the length is even.',
+      },
+      {
+        question: 'A follow-up asks you to check whether a list is a palindrome in O(1) extra space. Is copying the values into a Python list and comparing it with its reverse acceptable?',
+        options: [
+          'Yes, a Python list does not count as extra space',
+          'No: the copy is O(n) memory. Find the middle, reverse the second half in place and compare.',
+          'No, palindromes cannot be checked on a linked list',
+          'Yes, because slicing is O(1)',
+        ],
+        answerIndex: 1,
+        explanation: 'The copy is correct and O(n) time, but it uses the memory the follow-up forbids. Middle plus in-place reversal is O(1) space.',
+      },
+      {
+        question: 'Why must nxt be saved before executing cur.next = prev?',
+        options: [
+          'To keep the list sorted',
+          'Because cur.next is the only reference to the rest of the list and the flip overwrites it',
+          'Because a loop always needs three variables',
+          'To make the function tail recursive',
+        ],
+        answerIndex: 1,
+        explanation: 'Nothing else points at the remaining nodes. Overwrite cur.next without saving it and everything after cur is lost.',
+      },
+    ],
+    sources: [
+      'CLRS ch. 10 (elementary data structures)',
+      'MIT 6.006: Data Structures and Dynamic Arrays',
+      'VisuAlgo: Linked List',
+      'LeetCode editorial: Reverse Linked List',
     ],
   },
   {
@@ -714,6 +1174,7 @@ public:
         patternId: 'fast-slow-pointers',
         hint: 'Slow and fast pointers; return true the moment they point at the same node.',
         xp: 20,
+        tier: 'beginner',
       },
       {
         id: 'happy-number',
@@ -723,6 +1184,7 @@ public:
         patternId: 'fast-slow-pointers',
         hint: 'Treat "sum of squared digits" as next(); a number is happy if the fast pointer reaches 1 before meeting the slow one.',
         xp: 20,
+        tier: 'beginner',
       },
       {
         id: 'intersection-of-two-linked-lists',
@@ -732,6 +1194,7 @@ public:
         patternId: 'two-pointers',
         hint: 'Walk two pointers; when one reaches the end, switch it to the other list head, and they will meet at the intersection or both at None.',
         xp: 20,
+        tier: 'intermediate',
       },
       {
         id: 'linked-list-cycle-ii',
@@ -741,6 +1204,7 @@ public:
         patternId: 'fast-slow-pointers',
         hint: 'After the pointers meet, send one back to the head and move both one step at a time until they meet again.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'find-the-duplicate-number',
@@ -750,7 +1214,237 @@ public:
         patternId: 'fast-slow-pointers',
         hint: 'Use nums[i] as the next pointer from index i; the duplicate is the start of the cycle.',
         xp: 40,
+        tier: 'advanced',
       },
+    ],
+    definition:
+      'A linked list has a cycle when some node points back at a node that was already visited, so walking forward from the head never reaches None. Floyd cycle detection, the tortoise and hare, finds this by moving one pointer one node per round and another two nodes per round and checking whether they ever stand on the same node.',
+    coreIdea:
+      'Watch the two pointers from the slow one point of view. Each round fast moves 2 and slow moves 1, so relative to slow, fast advances exactly one node per round around a circle of L nodes. Something that advances one node at a time around a circle cannot jump over anything, so it must land on slow within L rounds. That replaces the question "have I been here before?", which normally needs O(n) stored nodes, with two variables and O(1) memory.',
+    visual: [
+      {
+        caption: 'The list. Node 5 points back at node 3, so 3, 4, 5 form a loop of length 3.',
+        frame: [
+          '1 -> 2 -> 3 -> 4 -> 5',
+          '          ^         |',
+          '          +---------+',
+          'nodes 1 and 2 are the tail leading in',
+        ].join('\n'),
+      },
+      {
+        caption: 'Round by round. Both start on node 1; fast gains one node each round.',
+        frame: [
+          'round 0   slow = 1    fast = 1',
+          'round 1   slow = 2    fast = 3',
+          'round 2   slow = 3    fast = 5',
+          'round 3   slow = 4    fast = 4   <- MEET',
+          '',
+          'fast went 5 -> 3 -> 4, slow went 3 -> 4',
+        ].join('\n'),
+      },
+      {
+        caption: 'Why they must meet: the gap shrinks by exactly one every round.',
+        frame: [
+          'loop length L = 3, positions 3=0, 4=1, 5=2',
+          'gap = (fast - slow) mod 3',
+          'round 2   slow=3 fast=5   gap = 2',
+          'round 3   slow=4 fast=4   gap = 0',
+          '',
+          'gap goes up by 1 each round on a circle of 3,',
+          'so it hits 0 within 3 rounds. No skipping.',
+        ].join('\n'),
+      },
+      {
+        caption: 'Finding where the loop starts: reset one pointer to the head.',
+        frame: [
+          'meeting point is node 4',
+          'p1 = head = 1        p2 = 4',
+          'round 1   p1 = 2     p2 = 5',
+          'round 2   p1 = 3     p2 = 3   <- MEET',
+          '',
+          'node 3 is the entrance of the loop',
+        ].join('\n'),
+      },
+      {
+        caption: 'No cycle: the fast pointer simply runs out of list.',
+        frame: [
+          'list  1 -> 2 -> 3 -> 4 -> None',
+          'round 0   slow = 1    fast = 1',
+          'round 1   slow = 2    fast = 3',
+          'round 2   slow = 3    fast = None',
+          'guard "while fast and fast.next" fails',
+          'return False',
+        ].join('\n'),
+      },
+      {
+        caption: 'The same trick on an array read as a set of pointers.',
+        frame: [
+          'nums = [1, 3, 4, 2, 2]',
+          'read it as   i  ->  nums[i]',
+          '0 -> 1 -> 3 -> 2 -> 4 -> 2 -> 4 ...',
+          '                   ^ loop starts at 2',
+          'the repeated value IS the loop entrance',
+        ].join('\n'),
+      },
+    ],
+    pseudocode: `function hasCycle(head):
+    slow = head
+    fast = head
+    while fast is not empty and fast.next is not empty:
+        slow = slow.next
+        fast = fast.next.next
+        if slow is the same node as fast:
+            return true
+    return false
+
+function cycleStart(head):
+    meeting = the node where hasCycle met, or empty
+    if meeting is empty:
+        return empty
+    walker = head
+    while walker is not the same node as meeting:
+        walker = walker.next
+        meeting = meeting.next
+    return walker`,
+    complexity: [
+      { label: 'No cycle present', time: 'O(n)', space: 'O(1)', note: 'fast reaches the end after n/2 rounds' },
+      { label: 'Cycle present', time: 'O(n)', space: 'O(1)', note: 'at most tail length plus loop length rounds' },
+      { label: 'Find the cycle entrance', time: 'O(n)', space: 'O(1)', note: 'one extra walk of at most n steps' },
+      { label: 'Visited-set alternative', time: 'O(n)', space: 'O(n)', note: 'stores a reference to every node seen' },
+    ],
+    dryRun: {
+      input: 'head = 1 -> 2 -> 3 -> 4 -> 5, and node 5 points back at node 3',
+      goal: 'Decide whether walking from the head ever repeats a node, using O(1) memory.',
+      steps: [
+        {
+          state: 'slow = node 1, fast = node 1',
+          action: 'fast and fast.next both exist, so enter the loop.',
+        },
+        {
+          state: 'slow = node 2, fast = node 3',
+          action: 'slow took one step, fast took two. They are different nodes, so keep going.',
+        },
+        {
+          state: 'slow = node 3, fast = node 5',
+          action: 'Both pointers are now inside the loop 3 -> 4 -> 5 -> 3. Still different nodes.',
+        },
+        {
+          state: 'slow = node 4, fast = node 4',
+          action: 'fast went 5 -> 3 -> 4 while slow went 3 -> 4, so both land on node 4.',
+        },
+        {
+          state: 'slow is fast',
+          action: 'The identity check succeeds, so the function returns True.',
+        },
+      ],
+      result:
+        'True, and they met on node 4. This proves a cycle exists because a pointer that only ever moves forward can revisit a node only if some next pointer leads backwards.',
+    },
+    mistakes: [
+      {
+        mistake: 'Comparing slow.val == fast.val instead of comparing the nodes themselves.',
+        why: 'A perfectly normal list such as 1 -> 2 -> 1 -> None has repeated values, so the code reports a cycle that does not exist.',
+        fix: 'Compare identity: slow is fast in Python, slow == fast on references in Java or JavaScript.',
+      },
+      {
+        mistake: 'Guarding the loop with while fast.next and fast, or with while fast.next.next.',
+        why: 'When fast becomes None the very first attribute read crashes, because conditions are evaluated left to right.',
+        fix: 'Use exactly while fast and fast.next.',
+      },
+      {
+        mistake: 'Starting slow at head and fast at head.next, then reusing the meeting point to find the entrance.',
+        why: 'The offset start breaks the distance equality that the reset-to-head step relies on, so the second phase lands on the wrong node.',
+        fix: 'Start both pointers at head whenever you also need the cycle entrance.',
+      },
+      {
+        mistake: 'Returning the meeting node as the start of the cycle.',
+        why: 'The two pointers meet somewhere inside the loop, which is almost never the entrance.',
+        fix: 'Reset one pointer to the head and advance both one step at a time. Where they meet again is the entrance.',
+      },
+      {
+        mistake: 'Detecting the cycle with a set of node values.',
+        why: 'Values legitimately repeat, and only the node object is unique.',
+        fix: 'Store the node objects themselves (or their ids), or use the two-pointer method and pay no memory at all.',
+      },
+    ],
+    whenToUse: [
+      'The statement says detect a loop, or warns that the list may not terminate.',
+      'The follow-up asks for O(1) extra memory.',
+      'A sequence is defined by "the next value comes from the current one", as with happy numbers or nums[nums[i]].',
+      'You need where the repetition starts, not just whether it happens.',
+      'The input is n + 1 numbers in the range 1 to n and you may not modify the array.',
+    ],
+    whenNotToUse: [
+      'O(n) memory is fine and you want the shortest correct code; a visited set is easier to get right.',
+      'You need the full list of nodes on the cycle, not only its entrance; a set records the path directly.',
+      'The structure is a general graph with several outgoing edges per node; use DFS with visiting and visited marks.',
+      'You are allowed to modify the nodes; marking them as visited is simpler, though it destroys the input.',
+      'The list is doubly linked and known to be well formed; there is nothing to detect.',
+    ],
+    relatedTopics: [
+      { id: 'reversal-and-middle', kind: 'concept', why: 'It uses the same two-speed walk, but stops at the midpoint instead of at a meeting.' },
+      { id: 'hash-map-basics', kind: 'concept', why: 'The O(n) space alternative is simply a set of the nodes already visited.' },
+      { id: 'graph-representation-bfs-dfs', kind: 'concept', why: 'Cycle detection in a general graph needs DFS colouring rather than two pointers.' },
+      { id: 'fast-slow-pointers', kind: 'pattern', why: 'This concept is that pattern in its purest form.' },
+    ],
+    quiz: [
+      {
+        question: 'Once both pointers are inside a loop of length L, why are they guaranteed to meet?',
+        options: [
+          'Because L is always even',
+          'Because relative to slow, fast advances exactly one node per round around a circle of L nodes, so it cannot skip past slow',
+          'Because fast eventually reaches None',
+          'Because the values in the loop are sorted',
+        ],
+        answerIndex: 1,
+        explanation: 'Fast gains one position per round. A gap that changes by one each time around a circle of L positions must hit zero within L rounds.',
+      },
+      {
+        question: 'How much extra memory does the tortoise and hare use on a list of n nodes?',
+        options: [
+          'O(n), one entry per visited node',
+          'O(log n)',
+          'O(1), just the two pointers',
+          'O(n), but only when a cycle exists',
+        ],
+        answerIndex: 2,
+        explanation: 'The algorithm stores slow and fast and nothing else, whatever n is. That is the whole reason it beats a visited set.',
+      },
+      {
+        question: 'Slow and fast meet at some node m. What do you do next to find where the cycle begins?',
+        options: [
+          'Return m, it is the entrance',
+          'Move fast one more step and return it',
+          'Reset one pointer to the head, then advance both one step at a time until they meet',
+          'Count the loop length and walk that many steps from the head',
+        ],
+        answerIndex: 2,
+        explanation: 'The distance from the head to the entrance equals the remaining distance from m to the entrance around the loop, so both pointers arrive there together.',
+      },
+      {
+        question: 'You must find the one duplicate in an array of n + 1 integers from 1 to n, in O(1) extra space and without modifying the array. Does cycle detection apply?',
+        options: [
+          'No, it only works on real linked lists',
+          'Yes: read i -> nums[i] as a next pointer, and the duplicate is the entrance of the cycle',
+          'Yes, but only if the array is sorted first',
+          'No, you have to sort the array',
+        ],
+        answerIndex: 1,
+        explanation: 'Two different indexes holding the same value give that value two incoming edges, which is exactly what makes a node the entrance of a cycle.',
+      },
+      {
+        question: 'Which guard is safe before moving fast two steps?',
+        options: ['while fast.next and fast', 'while fast and fast.next', 'while fast.next.next', 'while slow and slow.next'],
+        answerIndex: 1,
+        explanation: 'Conditions are evaluated left to right, so fast must be checked for None before any of its fields are read.',
+      },
+    ],
+    sources: [
+      'CLRS ch. 10 (elementary data structures)',
+      'CP-Algorithms: cycle detection in a functional graph (Floyd)',
+      'MIT 6.006: Data Structures and Dynamic Arrays',
+      'LeetCode editorial: Linked List Cycle II',
+      'VisuAlgo: Linked List',
     ],
   },
   {
@@ -989,6 +1683,7 @@ public:
         patternId: 'two-pointers',
         hint: 'Dummy node, compare heads, attach the smaller, and attach the leftover list at the end.',
         xp: 20,
+        tier: 'beginner',
       },
       {
         id: 'add-two-numbers',
@@ -998,6 +1693,7 @@ public:
         patternId: 'two-pointers',
         hint: 'Walk both lists together with a carry; keep looping while either list or the carry is non-zero.',
         xp: 40,
+        tier: 'beginner',
       },
       {
         id: 'partition-list',
@@ -1007,6 +1703,7 @@ public:
         patternId: 'two-pointers',
         hint: 'Build two separate lists (less than x, and the rest) with two dummy heads, then join them.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'sort-list',
@@ -1016,6 +1713,7 @@ public:
         patternId: 'divide-and-conquer',
         hint: 'Merge sort: find the middle with slow and fast pointers, cut the list, sort both halves, then merge.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'merge-k-sorted-lists',
@@ -1025,7 +1723,235 @@ public:
         patternId: 'k-way-merge',
         hint: 'Push the head of each list into a min-heap keyed by value; pop the smallest, attach it, and push its next node.',
         xp: 80,
+        tier: 'advanced',
       },
+    ],
+    definition:
+      'Merging two sorted linked lists means producing one sorted list containing all their nodes, by repeatedly taking whichever of the two current front nodes is smaller. On a linked list no new nodes are needed: you reattach the existing ones.',
+    coreIdea:
+      'Because both inputs are already sorted, the smallest value not yet used is always sitting at one of the two front nodes. One comparison therefore decides the next output node, and each node is decided exactly once. That replaces the O((n + m) log(n + m)) cost of sorting everything with a single linear pass, and because you relink nodes instead of copying them the extra memory is constant.',
+    visual: [
+      {
+        caption: 'Setup: a dummy node D and a tail pointer, so there is no empty-result case.',
+        frame: [
+          'a:    1 -> 3 -> 5 -> None',
+          'b:    2 -> 4 -> None',
+          'out:  D',
+          '      ^tail',
+        ].join('\n'),
+      },
+      {
+        caption: 'Compare the two heads: 1 <= 2, so node 1 is attached and a moves on.',
+        frame: [
+          'compare  a=1  b=2   ->  take a',
+          'out:  D -> 1',
+          '           ^tail',
+          'a:    3 -> 5 -> None',
+          'b:    2 -> 4 -> None',
+        ].join('\n'),
+      },
+      {
+        caption: 'Now 2 < 3, so node 2 is attached and b moves on.',
+        frame: [
+          'compare  a=3  b=2   ->  take b',
+          'out:  D -> 1 -> 2',
+          '                ^tail',
+          'a:    3 -> 5 -> None',
+          'b:    4 -> None',
+        ].join('\n'),
+      },
+      {
+        caption: 'Back to a: 3 <= 4, so node 3 is attached.',
+        frame: [
+          'compare  a=3  b=4   ->  take a',
+          'out:  D -> 1 -> 2 -> 3',
+          '                     ^tail',
+          'a:    5 -> None',
+          'b:    4 -> None',
+        ].join('\n'),
+      },
+      {
+        caption: 'Then 4 < 5, so node 4 is attached and b becomes empty.',
+        frame: [
+          'compare  a=5  b=4   ->  take b',
+          'out:  D -> 1 -> 2 -> 3 -> 4',
+          '                          ^tail',
+          'a:    5 -> None',
+          'b:    None      <- loop ends here',
+        ].join('\n'),
+      },
+      {
+        caption: 'One list is empty, so attach the whole remainder of the other in one write.',
+        frame: [
+          'tail.next = a',
+          'out:  D -> 1 -> 2 -> 3 -> 4 -> 5 -> None',
+          'return D.next',
+          '      1 -> 2 -> 3 -> 4 -> 5 -> None',
+          '',
+          'no node was created, only relinked',
+        ].join('\n'),
+      },
+    ],
+    pseudocode: `function mergeSorted(a, b):
+    dummy = new Node(0)
+    tail = dummy
+    while a is not empty and b is not empty:
+        if a.value <= b.value:          // <= keeps it stable
+            tail.next = a
+            a = a.next
+        else:
+            tail.next = b
+            b = b.next
+        tail = tail.next
+    if a is not empty:
+        tail.next = a                   // attach the leftover
+    else:
+        tail.next = b
+    return dummy.next`,
+    complexity: [
+      { label: 'Merge two lists of n and m nodes', time: 'O(n + m)', space: 'O(1)', note: 'one comparison per output node' },
+      { label: 'Merge sort a list of n nodes', time: 'O(n log n)', space: 'O(log n)', note: 'log n split levels on the call stack' },
+      { label: 'Merge k lists with a min-heap', time: 'O(N log k)', space: 'O(k)', note: 'N nodes total, heap holds one head per list' },
+      { label: 'Merge k lists pairwise', time: 'O(N log k)', space: 'O(1)', note: 'log k rounds, each round touches N nodes' },
+      { label: 'Merge k lists one after another', time: 'O(N k)', space: 'O(1)', note: 'the growing result is rescanned every round' },
+    ],
+    dryRun: {
+      input: 'a = 1 -> 3 -> 5 -> None, b = 2 -> 4 -> None',
+      goal: 'Build one sorted list out of both, without creating any new nodes.',
+      steps: [
+        {
+          state: 'dummy = D, tail = D, a = 1, b = 2',
+          action: 'Both lists are non-empty. 1 <= 2, so tail.next = node 1, a moves to node 3, tail moves to node 1.',
+        },
+        {
+          state: 'out = D -> 1, tail = 1, a = 3, b = 2',
+          action: '3 <= 2 is false, so tail.next = node 2, b moves to node 4, tail moves to node 2.',
+        },
+        {
+          state: 'out = D -> 1 -> 2, tail = 2, a = 3, b = 4',
+          action: '3 <= 4, so tail.next = node 3, a moves to node 5, tail moves to node 3.',
+        },
+        {
+          state: 'out = D -> 1 -> 2 -> 3, tail = 3, a = 5, b = 4',
+          action: '5 <= 4 is false, so tail.next = node 4, b becomes None, tail moves to node 4.',
+        },
+        {
+          state: 'out = D -> 1 -> 2 -> 3 -> 4, tail = 4, a = 5, b = None',
+          action: 'b is None, so the while loop ends.',
+        },
+        {
+          state: 'a = 5, b = None',
+          action: 'tail.next = a attaches the entire rest of a in one write, which here is just node 5.',
+        },
+      ],
+      result:
+        'Return dummy.next, which is 1 -> 2 -> 3 -> 4 -> 5 -> None. It is sorted because each step appended the smallest value still available anywhere, and nothing was copied.',
+    },
+    mistakes: [
+      {
+        mistake: 'Forgetting to attach the leftover list after the while loop.',
+        why: 'The loop stops as soon as either list empties, so the tail of the longer list is silently dropped and nodes disappear.',
+        fix: 'Finish with tail.next = a if a else b. One line, and it also covers both lists being empty.',
+      },
+      {
+        mistake: 'Using < instead of <= when comparing the two heads.',
+        why: 'Equal values are then taken from the second list first, which breaks stability. Problems that must keep the original relative order of equal items fail.',
+        fix: 'Use <= so a tie is always resolved in favour of the first list.',
+      },
+      {
+        mistake: 'Building the result out of brand new nodes.',
+        why: 'It doubles the memory for no reason, and it breaks follow-ups where the caller still holds references to the original node objects.',
+        fix: 'Relink what already exists: tail.next = a, then advance a.',
+      },
+      {
+        mistake: 'Merging k lists by folding each one into a growing accumulator.',
+        why: 'The accumulated result is walked again in every round, so the cost is about N k instead of N log k. With k = 10000 that is the difference between passing and timing out.',
+        fix: 'Use a min-heap of the k current heads, or merge lists in pairs so that k halves every round.',
+      },
+      {
+        mistake: 'Splitting a list for merge sort without cutting the first half.',
+        why: 'If the node before the middle still points forward, the "first half" runs to the very end, so the sub-problem is not smaller and the recursion never terminates.',
+        fix: 'Keep a prev pointer while finding the middle and set prev.next = None before recursing.',
+      },
+    ],
+    whenToUse: [
+      'Two or more inputs are already sorted and the output must stay sorted.',
+      'The statement says merge, combine or interleave sorted sequences.',
+      'You must sort a linked list; merge sort fits because splitting a list is cheap and no random access is needed.',
+      'You are walking two sequences in step, with a carry or an offset, as in adding two numbers.',
+      'Extra memory is limited and you cannot afford to copy the nodes into an array.',
+    ],
+    whenNotToUse: [
+      'The inputs are not sorted; sort first, or use a hash map if you only need membership.',
+      'You need the k smallest of a huge stream rather than a full merge; keep a heap of size k.',
+      'The data is in arrays and allocation is fine; a plain two-index merge into a new array is simpler and faster.',
+      'You need random access to the merged result; merge into an array so indexing stays O(1).',
+      'Only the distinct values matter and duplicates should collapse; a set or sorted set fits better.',
+    ],
+    relatedTopics: [
+      { id: 'merge-sort', kind: 'concept', why: 'The merge here is exactly the combine step of merge sort, written for nodes.' },
+      { id: 'heap-basics', kind: 'concept', why: 'A min-heap of the k heads is what keeps the k-way merge at O(N log k).' },
+      { id: 'reversal-and-middle', kind: 'concept', why: 'Merge sort on a list needs the fast and slow midpoint in order to split.' },
+      { id: 'k-way-merge', kind: 'pattern', why: 'Merging k lists is the general form of this two-list merge.' },
+      { id: 'two-pointers', kind: 'pattern', why: 'One pointer per list, each advancing only when its own value is consumed.' },
+    ],
+    quiz: [
+      {
+        question: 'You merge k sorted lists holding N nodes in total by repeatedly merging the accumulated result with the next list. What is the total time?',
+        options: ['O(N log k)', 'O(N k)', 'O(N)', 'O(k log N)'],
+        answerIndex: 1,
+        explanation: 'The accumulated result is walked again in every round, so the work adds up to roughly N k / 2. A heap or pairwise merging brings it down to O(N log k).',
+      },
+      {
+        question: 'Why does the merge compare with <= rather than <?',
+        options: [
+          'It is faster',
+          'It keeps the merge stable, so equal values from the first list stay in front',
+          'It prevents an infinite loop',
+          'It is needed for negative numbers',
+        ],
+        answerIndex: 1,
+        explanation: 'With <= a tie is resolved in favour of list a, which preserves the original relative order of equal values.',
+      },
+      {
+        question: 'What does the dummy node give you?',
+        options: [
+          'It stores the length of the result',
+          'It gives tail a real node to write into before the first output node exists, so no "is the result still empty?" branch is needed',
+          'It makes the result circular',
+          'It makes the comparison faster',
+        ],
+        answerIndex: 1,
+        explanation: 'Without a dummy you would need a special case for setting the head on the first iteration. You return dummy.next at the end.',
+      },
+      {
+        question: 'Both lists are sorted, and you merge them by pushing every value into a Python list, sorting it and rebuilding the chain. Is that a good solution?',
+        options: [
+          'Yes, it has the same complexity',
+          'It is correct but wasteful: O((n + m) log(n + m)) time and O(n + m) space instead of O(n + m) time and O(1) space',
+          'No, it produces the wrong answer',
+          'Yes, because Python sort is O(n)',
+        ],
+        answerIndex: 1,
+        explanation: 'It throws away the one fact that makes the linear merge possible, namely that both inputs are already sorted.',
+      },
+      {
+        question: 'For merge sort on a list you find the middle with slow and fast pointers and then call sort(head) and sort(slow). What is missing?',
+        options: [
+          'Nothing, this is correct',
+          'You must cut the first half by setting the node before slow to None, otherwise the recursion never shrinks',
+          'You must reverse the second half first',
+          'You must sort the halves in the opposite order',
+        ],
+        answerIndex: 1,
+        explanation: 'Without the cut, the first half still runs to the end of the list, so the sub-problem is the same size and the recursion does not terminate.',
+      },
+    ],
+    sources: [
+      'CLRS ch. 2 (merge sort)',
+      'MIT 6.006: Data Structures and Dynamic Arrays',
+      'VisuAlgo: Sorting (merge sort)',
+      'LeetCode editorial: Merge k Sorted Lists',
     ],
   },
 ]

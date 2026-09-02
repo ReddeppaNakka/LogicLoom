@@ -305,7 +305,12 @@
   --nav-w: 248px;
 }
 
-html, body, #root { height: 100%; }
+/* min-height, not height: a fixed 100% turns #root into the scroll container,
+   which detaches the page from window scroll and breaks scroll-linked UI. */
+html, body, #root { min-height: 100%; }
+/* Safety net against sideways page scroll. `clip` rather than `hidden` so it
+   does not become a scroll container, which would break position: sticky. */
+html { overflow-x: clip; }
 body {
   margin: 0;
   background: var(--bg);
@@ -485,11 +490,12 @@ textarea.input { min-height: 96px; resize: vertical; line-height: 1.55; }
 /* ---------- Reading mode ---------- */
 .reading-sheet { position: relative; border-radius: 18px; }
 .reading-sheet::before {
-  content: ""; position: absolute; inset: -24px -40px; border-radius: 28px; z-index: -1; pointer-events: none;
+  content: ""; position: absolute; inset: -24px -16px; border-radius: 28px; z-index: -1; pointer-events: none;
   background: linear-gradient(180deg, var(--surface-1), transparent 92%);
   mask-image: radial-gradient(120% 100% at 50% 0%, #000 55%, transparent 100%);
   -webkit-mask-image: radial-gradient(120% 100% at 50% 0%, #000 55%, transparent 100%);
 }
+@media (min-width: 768px) { .reading-sheet::before { inset: -24px -32px; } }
 .no-sheet .reading-sheet::before { display: none; }
 
 .reading-progress {

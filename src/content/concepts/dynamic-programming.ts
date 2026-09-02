@@ -685,8 +685,8 @@ int rob(vector<int>& nums) {
       {
         caption: 'House Robber on [2, 7, 9, 3, 1]. State: dp[i] = most money from the first i houses. Base: dp[0]=0, dp[1]=2.',
         frame: [
-          'money      -    2    7    9    3    1',
-          'i          0    1    2    3    4    5',
+          'money      -     2     7     9     3     1',
+          'i          0     1     2     3     4     5',
           'dp      [  0 ][  2 ][  . ][  . ][  . ][  . ]',
           '           ^     ^',
           '           base cells, no decision to make yet',
@@ -695,8 +695,8 @@ int rob(vector<int>& nums) {
       {
         caption: 'Fill dp[2]. Transition: dp[i] = max(dp[i-1], money[i-1] + dp[i-2]).',
         frame: [
-          'money      -    2    7    9    3    1',
-          'i          0    1    2    3    4    5',
+          'money      -     2     7     9     3     1',
+          'i          0     1     2     3     4     5',
           'dp      [  0 ][  2 ][  7 ][  . ][  . ][  . ]',
           '           ^     ^     ^',
           '           |     |     +- new cell dp[2]',
@@ -708,8 +708,8 @@ int rob(vector<int>& nums) {
       {
         caption: 'Fill dp[3] from dp[1] and dp[2].',
         frame: [
-          'money      -    2    7    9    3    1',
-          'i          0    1    2    3    4    5',
+          'money      -     2     7     9     3     1',
+          'i          0     1     2     3     4     5',
           'dp      [  0 ][  2 ][  7 ][ 11 ][  . ][  . ]',
           '                 ^     ^     ^',
           '                 |     |     +- new cell dp[3]',
@@ -721,8 +721,8 @@ int rob(vector<int>& nums) {
       {
         caption: 'Fill dp[4]. Here skipping wins, so the running best simply carries over.',
         frame: [
-          'money      -    2    7    9    3    1',
-          'i          0    1    2    3    4    5',
+          'money      -     2     7     9     3     1',
+          'i          0     1     2     3     4     5',
           'dp      [  0 ][  2 ][  7 ][ 11 ][ 11 ][  . ]',
           '                       ^     ^     ^',
           '                       |     |     +- new cell dp[4]',
@@ -734,8 +734,8 @@ int rob(vector<int>& nums) {
       {
         caption: 'Fill dp[5] and read the answer off the last cell.',
         frame: [
-          'money      -    2    7    9    3    1',
-          'i          0    1    2    3    4    5',
+          'money      -     2     7     9     3     1',
+          'i          0     1     2     3     4     5',
           'dp      [  0 ][  2 ][  7 ][ 11 ][ 11 ][ 12 ]',
           '                             ^     ^     ^',
           '                             +-----+-----+',
@@ -1633,6 +1633,212 @@ bool canPartition(vector<int>& nums) {
       'Complexity O(n * target); check that target is small enough for a table.',
     ],
     patternIds: ['knapsack', 'dp-1d'],
+    definition:
+      'Knapsack DP picks a subset of items so that a total weight or sum stays inside a limit, or hits a target exactly, while maximising a value or counting the ways. The state is the pair (items considered so far, capacity still available), and at every item the only choice is take it or skip it.',
+    coreIdea:
+      'Two different subsets that use the same capacity are interchangeable from that point on, because only the remaining capacity affects what can still be packed. So the 2^n subsets collapse into n * capacity states, and each state is settled by comparing two numbers. That is why an apparently exponential search runs in O(n * capacity), and why one array of capacity + 1 cells can stand in for the whole 2D table.',
+    visual: [
+      {
+        caption: 'Partition Equal Subset Sum on [1, 5, 11, 5]. Total is 22, so the target is 11. State: dp[t] = can the items seen so far add up to t. Base: dp[0] = T.',
+        frame: [
+          't       0  1  2  3  4  5  6  7  8  9 10 11',
+          'dp      T  F  F  F  F  F  F  F  F  F  F  F',
+          '        ^',
+          '        sum 0 is always reachable, using nothing',
+        ].join('\n'),
+      },
+      {
+        caption: 'Item 1. Sweep t from 11 down to 1. Transition: dp[t] = dp[t] or dp[t - 1].',
+        frame: [
+          't       0  1  2  3  4  5  6  7  8  9 10 11',
+          'dp      T  T  F  F  F  F  F  F  F  F  F  F',
+          '        ^  ^',
+          '        +--+ dp[1] = dp[1] or dp[0] = T',
+          '',
+          'reachable sums so far: {0, 1}',
+        ].join('\n'),
+      },
+      {
+        caption: 'Item 5, still sweeping downward. dp[6] reads dp[1], which still belongs to the previous item.',
+        frame: [
+          't       0  1  2  3  4  5  6  7  8  9 10 11',
+          'dp      T  T  F  F  F  T  T  F  F  F  F  F',
+          '           ^              ^',
+          '           +--------------+',
+          '',
+          'dp[6] = dp[6] or dp[1] = T, and dp[5] from dp[0]',
+          'reachable sums so far: {0, 1, 5, 6}',
+        ].join('\n'),
+      },
+      {
+        caption: 'Item 11. Only dp[11] can change, and it reads dp[0].',
+        frame: [
+          't       0  1  2  3  4  5  6  7  8  9 10 11',
+          'dp      T  T  F  F  F  T  T  F  F  F  F  T',
+          '        ^                                ^',
+          '        +--------------------------------+',
+          '',
+          'dp[11] = dp[11] or dp[0] = T',
+          'answer: true, split as {11} and {1, 5, 5}',
+        ].join('\n'),
+      },
+      {
+        caption: 'Why the sweep must go downward for 0/1 items: the same item gets used twice if it goes up.',
+        frame: [
+          'item = 5, WRONG upward sweep, capacity 10',
+          't       0  1  2  3  4  5  6  7  8  9 10',
+          'dp      T  F  F  F  F  T  F  F  F  F  T',
+          '                       ^              ^',
+          'dp[5] is set from dp[0], then dp[10] reads the',
+          'NEW dp[5] and uses the 5 a second time.',
+          'Downward, dp[t - w] is still the previous row.',
+        ].join('\n'),
+      },
+    ],
+    pseudocode: `// 0/1 knapsack: each item may be used at most once.
+// State:      dp[c] = best value using the items seen so far, capacity c.
+// Transition: dp[c] = max(dp[c], value[i] + dp[c - weight[i]]).
+// Base case:  dp[c] = 0 for every c (take nothing).
+
+function knapsack01(weight, value, capacity):
+    dp = array of capacity + 1 cells, all 0
+    for each item i:
+        for c from capacity down to weight[i]:        // DOWNWARD
+            dp[c] = max(dp[c], value[i] + dp[c - weight[i]])
+    return dp[capacity]
+
+// Unbounded knapsack: an item may be used any number of times.
+function knapsackUnbounded(weight, value, capacity):
+    dp = array of capacity + 1 cells, all 0
+    for each item i:
+        for c from weight[i] up to capacity:          // UPWARD
+            dp[c] = max(dp[c], value[i] + dp[c - weight[i]])
+    return dp[capacity]
+
+// Sweeping down keeps dp[c - weight[i]] on the previous row, before
+// item i was added, so item i can be used at most once; sweeping up
+// lets dp[c - weight[i]] already include item i, which is exactly
+// what "reuse allowed" means.`,
+    complexity: [
+      { label: 'Brute force subsets', time: 'O(2^n)', space: 'O(n)', note: 'every take-or-skip path explored; space is the call stack' },
+      { label: '0/1 knapsack, 2D table', time: 'O(n * W)', space: 'O(n * W)', note: 'keep every row when the chosen items must be recovered' },
+      { label: '0/1 knapsack, 1D table', time: 'O(n * W)', space: 'O(W)', note: 'one row, capacity swept downward so each item is used once' },
+      { label: 'Unbounded knapsack', time: 'O(n * W)', space: 'O(W)', note: 'same row reused, capacity swept upward so items repeat' },
+      { label: 'Note on W', time: 'pseudo-polynomial', space: '-', note: 'W is the numeric capacity, not the input length, so a huge W kills the table even for small n' },
+    ],
+    dryRun: {
+      input: 'nums = [1, 5, 11, 5]',
+      goal: 'Decide whether the numbers can be split into two groups with equal sums, by asking whether some subset reaches total / 2.',
+      steps: [
+        { state: 'total=22 target=11 dp[0]=True', action: 'The total is even, so the question becomes: is 11 reachable? Only sum 0 is reachable at the start.' },
+        { state: 'num=1, t from 11 down to 1', action: 'Only dp[1] finds dp[1-1]=dp[0]=True, so dp[1] becomes True. Reachable: {0, 1}.' },
+        { state: 'num=5, t from 11 down to 5', action: 'dp[6] reads dp[1]=True and dp[5] reads dp[0]=True, so both flip. Reachable: {0, 1, 5, 6}.' },
+        { state: 'num=11, t from 11 down to 11', action: 'dp[11] reads dp[0]=True and flips to True. The target is now marked.' },
+        { state: 'num=5, t from 11 down to 5', action: 'dp[10] reads dp[5]=True and dp[11] reads dp[6]=True; dp[11] was already True, so nothing changes.' },
+        { state: 'all items used, dp[11]=True', action: 'Return dp[target].' },
+      ],
+      result: 'True. The witness is {11} against {1, 5, 5}, and both sides add up to 11, which is exactly half of 22.',
+    },
+    mistakes: [
+      {
+        mistake: 'Sweeping the capacity upward in a 0/1 knapsack.',
+        why: 'dp[c - w] has already been updated by the current item, so the item is counted twice. On [3, 34, 4, 12] with target 6 an upward sweep reports true by using the 3 twice.',
+        fix: 'For 0/1 go from capacity down to the item weight. Reserve the upward sweep for unbounded problems such as Coin Change II.',
+      },
+      {
+        mistake: 'Skipping the impossibility checks before building the table.',
+        why: 'An odd total can never be split in half, and a Target Sum where (total + target) is odd or negative has no subset at all; without the check the table is built for nothing or an index goes negative.',
+        fix: 'Check parity, sign and range first, then allocate the table.',
+      },
+      {
+        mistake: 'Using a boolean reachability table when the question asks how many ways.',
+        why: 'True or False cannot count, so problems like Target Sum come out as 1 or 0 instead of the real number of subsets.',
+        fix: 'Switch the cells to integers with dp[0] = 1 and use dp[t] += dp[t - num], keeping the same downward sweep.',
+      },
+      {
+        mistake: 'Rolling to one row and then trying to list the items that were packed.',
+        why: 'The single row keeps only the best value, not which item produced it, so reconstruction is impossible.',
+        fix: 'Keep the full n x W table and walk backwards from dp[n][W], stepping to dp[i-1][W] when the value is unchanged and to dp[i-1][W - w[i]] otherwise.',
+      },
+      {
+        mistake: 'Reaching for the table when the capacity is around 10^9.',
+        why: 'O(n * W) is pseudo-polynomial: with W = 10^9 the table alone is far beyond memory even though n is tiny.',
+        fix: 'Look for meet-in-the-middle when n is about 40, or a value-indexed table when the total value is small instead of the weight.',
+      },
+    ],
+    whenToUse: [
+      'Words like subset, choose items, capacity, budget, or "split into two groups".',
+      'Each item is either taken or not, and the order of the items does not matter.',
+      'A target sum to hit exactly, or a limit to stay under while maximising a value.',
+      'The capacity or target is at most a few tens of thousands, so it can index an array.',
+    ],
+    whenNotToUse: [
+      'Items can be cut into fractions; then the greedy value-per-weight rule is optimal and runs in O(n log n).',
+      'The capacity is around 10^9 while n is about 40; use meet-in-the-middle instead of a table.',
+      'The order of the chosen items matters, as in Combination Sum IV; that needs the amount on the outside of the loops, which is a different recurrence.',
+      'There is no capacity at all and you simply want the largest items; sorting or a heap is enough.',
+      'Items depend on each other, for example one item requires another; that is DP on a tree or a graph, not a flat knapsack.',
+    ],
+    relatedTopics: [
+      { id: 'dp-1d', kind: 'concept', why: 'The 1D knapsack row is exactly a 1D DP table where the index is the remaining capacity.' },
+      { id: 'subsets-and-permutations', kind: 'concept', why: 'The brute-force version is subset enumeration; knapsack is what you do when 2^n is too many subsets.' },
+      { id: 'greedy-basics', kind: 'concept', why: 'The fractional version is solved greedily, which is a sharp reminder that greedy fails on the 0/1 version.' },
+      { id: 'knapsack', kind: 'pattern', why: 'The take-or-skip template with a capacity axis, reused across partition, target-sum and coin problems.' },
+    ],
+    quiz: [
+      {
+        question: 'In the 1D 0/1 knapsack, why must the capacity loop run downward?',
+        options: [
+          'It is faster because of cache behaviour',
+          'So dp[c - w] still holds the value from before the current item, which keeps each item used at most once',
+          'Because arrays cannot be read forwards while being written',
+          'To avoid integer overflow in the sums',
+        ],
+        answerIndex: 1,
+        explanation: 'The single row is standing in for two rows of a 2D table. Going downward means the cell you read has not yet been touched by this item, so it represents the previous row.',
+      },
+      {
+        question: 'Coin Change II counts the combinations that make an amount, with unlimited coins. Which loop direction and order is right?',
+        options: [
+          'Coins outside, amount sweeping downward',
+          'Coins outside, amount sweeping upward',
+          'Amount outside, coins inside, sweeping downward',
+          'Either direction works because coins are unlimited',
+        ],
+        answerIndex: 1,
+        explanation: 'Unlimited use needs the upward sweep so a coin can build on itself, and keeping coins on the outside counts each unordered combination once rather than every ordering.',
+      },
+      {
+        question: 'n = 100 items and capacity W = 100000. How many cells does the DP fill, and is that acceptable?',
+        options: [
+          'About 10^7 cells, which is fine in a compiled language and borderline in Python',
+          'About 2^100 cells, which is impossible',
+          'About 10^5 cells, trivially fast',
+          'About 10^10 cells, far too many',
+        ],
+        answerIndex: 0,
+        explanation: 'The table is n * W = 100 * 100000 = 10^7 constant-time updates. Always multiply the two sizes before choosing this approach.',
+      },
+      {
+        question: 'Would the 0/1 knapsack table work for the fractional knapsack, where items can be cut?',
+        options: [
+          'Yes, and it gives the same answer',
+          'It would work but is unnecessary: sorting by value per unit weight and taking greedily is optimal and faster',
+          'No, fractional knapsack has no polynomial solution',
+          'Yes, but only if all the weights are integers',
+        ],
+        answerIndex: 1,
+        explanation: 'Cutting items removes the all-or-nothing conflict that forces DP. With fractions a simple exchange argument proves the greedy order is optimal in O(n log n).',
+      },
+    ],
+    sources: [
+      'CLRS ch. 15 and section 16.2, on the 0/1 versus fractional knapsack',
+      'MIT 6.006 lectures on dynamic programming and pseudo-polynomial time',
+      'USACO Guide, Knapsack DP',
+      'AtCoder Educational DP Contest, problems D and E (Knapsack 1 and 2)',
+      'CSES Problem Set, Book Shop and Coin Combinations',
+      'CP-Algorithms, dynamic programming section',
+    ],
     problems: [
       {
         id: 'partition-equal-subset-sum',
@@ -1922,6 +2128,240 @@ int lengthOfLIS(vector<int>& nums) {
       'Subsequence allows gaps; substring does not.',
     ],
     patternIds: ['lcs-lis', 'dp-2d'],
+    definition:
+      'A subsequence keeps the original order of the elements but may skip some of them. LIS asks for the longest strictly increasing subsequence of one array; LCS asks for the longest subsequence shared by two strings. Both are solved by defining the answer that ends exactly at a given position.',
+    coreIdea:
+      'Instead of asking about all 2^n subsequences, ask a much smaller question: what is the best chain that ends exactly at index i, or the best match between the first i letters of A and the first j letters of B. Each such answer depends only on earlier answers of the same shape, so there are n states for LIS and m*n for LCS. That is what turns an exponential search into O(n^2) and O(m*n), and for LIS a sorted list of chain endings plus binary search pushes it further, to O(n log n).',
+    visual: [
+      {
+        caption: 'LIS on [10, 9, 2, 5, 3, 7, 101, 18]. State: dp[i] = longest increasing run ending exactly at i. Base: every dp[i] starts at 1.',
+        frame: [
+          'idx      0    1    2    3    4    5    6    7',
+          'nums    10    9    2    5    3    7  101   18',
+          'dp       1    1    1    2    2    3    .    .',
+          '                   ^    ^    ^    ^',
+          '                   |    |    |    +- new dp[5]',
+          '                   +----+----+------ j with nums[j] < 7',
+          '',
+          'dp[5] = 1 + max(dp[2], dp[3], dp[4]) = 1 + 2 = 3',
+        ].join('\n'),
+      },
+      {
+        caption: 'The finished LIS table. The answer is the largest cell, not the last one.',
+        frame: [
+          'idx      0    1    2    3    4    5    6    7',
+          'nums    10    9    2    5    3    7  101   18',
+          'dp       1    1    1    2    2    3    4    4',
+          '                                       ^',
+          'answer = max(dp) = 4, the chain 2, 5, 7, 101',
+          'if the array ended in a 0, dp[last] would be 1',
+          'while the answer would still be 4',
+        ].join('\n'),
+      },
+      {
+        caption: 'The O(n log n) version: tails[k] = smallest possible last value of a chain of length k + 1. Binary search finds where each number lands.',
+        frame: [
+          'num    tails after it is placed',
+          ' 10    [10]',
+          '  9    [9]              replaced 10',
+          '  2    [2]              replaced 9',
+          '  5    [2, 5]           appended',
+          '  3    [2, 3]           replaced 5',
+          '  7    [2, 3, 7]        appended',
+          '101    [2, 3, 7, 101]   appended',
+          ' 18    [2, 3, 7, 18]    replaced 101',
+          '',
+          'length 4 is the answer; the list itself is not the LIS',
+        ].join('\n'),
+      },
+      {
+        caption: 'LCS of "abcde" and "ace". State: dp[i][j] = LCS of the first i and first j letters. Base: an empty string matches nothing. Here the letters match.',
+        frame: [
+          '          ""    a     c     e',
+          '   ""  [  0d][  0 ][  0 ][  0 ]',
+          '   a   [  0 ][  1*][  . ][  . ]',
+          '   b   [  0 ][  . ][  . ][  . ]',
+          '',
+          'd = diagonal source, * = new cell',
+          'a matches a, so dp[1][1] = dp[0][0] + 1 = 1',
+        ].join('\n'),
+      },
+      {
+        caption: 'A mismatch takes the better of dropping one letter from either string.',
+        frame: [
+          '          ""    a     c     e',
+          '   ""  [  0 ][  0 ][  0 ][  0 ]',
+          '   a   [  0 ][  1u][  1 ][  1 ]',
+          '   b   [  0l][  1*][  . ][  . ]',
+          '',
+          'u = source above, l = source left',
+          'b does not match a, so dp[2][1] = max(1, 0) = 1',
+        ].join('\n'),
+      },
+      {
+        caption: 'The finished LCS table. The answer is the bottom-right cell.',
+        frame: [
+          '          ""    a     c     e',
+          '   ""  [  0 ][  0 ][  0 ][  0 ]',
+          '   a   [  0 ][  1 ][  1 ][  1 ]',
+          '   b   [  0 ][  1 ][  1 ][  1 ]',
+          '   c   [  0 ][  1 ][  2 ][  2 ]',
+          '   d   [  0 ][  1 ][  2 ][  2 ]',
+          '   e   [  0 ][  1 ][  2 ][  3 ]',
+          '',
+          'LCS of abcde and ace is ace, length 3',
+        ].join('\n'),
+      },
+    ],
+    pseudocode: `// LIS by DP.
+// State:      dp[i] = length of the longest increasing run ending at i.
+// Transition: dp[i] = 1 + max(dp[j]) over j < i with a[j] < a[i].
+// Base case:  dp[i] = 1 for every i, since one element is a run.
+
+function lisQuadratic(a):
+    n = length of a
+    dp = array of n cells, all 1
+    for i from 0 to n - 1:
+        for j from 0 to i - 1:
+            if a[j] < a[i] and dp[j] + 1 > dp[i]:
+                dp[i] = dp[j] + 1
+    return the largest value in dp
+
+// LIS in O(n log n): tails[k] = smallest last value of a run of length k+1.
+function lisFast(a):
+    tails = empty list
+    for each x in a:
+        pos = first index in tails whose value >= x     // binary search
+        if pos equals length of tails:
+            append x to tails
+        else:
+            tails[pos] = x
+    return length of tails
+// This returns the LENGTH only. To rebuild the actual sequence, store the
+// index placed at each position and a parent link for every element, then
+// walk the links backwards from the last element that extended tails.`,
+    complexity: [
+      { label: 'Brute force subsequences', time: 'O(2^n * n)', space: 'O(n)', note: 'generate every subsequence and check it' },
+      { label: 'LIS by DP', time: 'O(n^2)', space: 'O(n)', note: 'each pair (j, i) compared once; this is what interviewers expect first' },
+      { label: 'LIS by patience sorting', time: 'O(n log n)', space: 'O(n)', note: 'one binary search per element; gives the length, and needs parent links to rebuild the sequence' },
+      { label: 'LCS table', time: 'O(m * n)', space: 'O(m * n)', note: 'every prefix pair filled once; keep the table to walk the answer back out' },
+      { label: 'LCS with two rows', time: 'O(m * n)', space: 'O(min(m, n))', note: 'length only, the subsequence itself can no longer be recovered' },
+    ],
+    dryRun: {
+      input: 'nums = [10, 9, 2, 5, 3, 7, 101, 18]',
+      goal: 'Find the length of the longest strictly increasing subsequence with the O(n^2) table, where dp[i] is the best chain ending at i.',
+      steps: [
+        { state: 'dp = [1, 1, 1, 1, 1, 1, 1, 1]', action: 'Every element on its own is a chain of length 1, which is the base case.' },
+        { state: 'i=1 (9), dp[1]=1', action: 'The only earlier value is 10, which is not smaller than 9, so dp[1] stays 1.' },
+        { state: 'i=3 (5), dp = [1,1,1,2,...]', action: 'Earlier smaller value 2 has dp[2]=1, so dp[3] = 1 + 1 = 2 for the chain 2, 5.' },
+        { state: 'i=4 (3), dp[4]=2', action: 'Only 2 is smaller than 3, giving dp[4] = 2 for the chain 2, 3.' },
+        { state: 'i=5 (7), dp[5]=3', action: 'Smaller values are 2, 5 and 3 with dp 1, 2 and 2, so dp[5] = 1 + 2 = 3 for 2, 5, 7.' },
+        { state: 'i=6 (101), dp[6]=4', action: 'Every earlier value is smaller, and the best is dp[5]=3, so dp[6] = 4 for 2, 5, 7, 101.' },
+        { state: 'i=7 (18), dp[7]=4', action: '18 can follow 7 with dp[5]=3, so dp[7] = 4 for 2, 5, 7, 18.' },
+        { state: 'dp = [1,1,1,2,2,3,4,4]', action: 'Return the largest cell rather than the last one.' },
+      ],
+      result: '4. The chains 2, 5, 7, 101 and 2, 5, 7, 18 both reach length 4, and the tails method gives the same 4 with the list [2, 3, 7, 18].',
+    },
+    mistakes: [
+      {
+        mistake: 'Returning dp[n-1] as the LIS answer.',
+        why: 'dp[i] is the best chain ending at i, and the best chain may end anywhere. On [1, 2, 3, 0] it returns 1 instead of 3.',
+        fix: 'Return the maximum over the whole dp array, or keep a running best while filling it.',
+      },
+      {
+        mistake: 'Printing the tails array as if it were the increasing subsequence.',
+        why: 'tails only stores the smallest possible ending value for each length; its contents are usually not a real subsequence of the input, even though its length is correct.',
+        fix: 'If the sequence itself is needed, store the tails index for each element plus a parent pointer, then follow the parents back from the last element that extended tails.',
+      },
+      {
+        mistake: 'Using the same binary search for strictly increasing and non-decreasing versions.',
+        why: 'Searching for the first value greater than or equal to x allows equal values to replace each other (strict); searching for the first strictly greater value lets equal values stack (non-decreasing). Mixing them up shifts the answer by one on inputs with duplicates.',
+        fix: 'Decide which the statement asks for, then pick the lower-bound or upper-bound search deliberately.',
+      },
+      {
+        mistake: 'Indexing the padded LCS table with a[i] and b[j].',
+        why: 'dp[i][j] talks about the first i and first j letters, so the letters being compared are a[i-1] and b[j-1]. Using a[i] shifts everything and reads past the end.',
+        fix: 'Write "row i means the first i letters" at the top of the loop and always subtract one when touching the string.',
+      },
+      {
+        mistake: 'Treating "longest common substring" as LCS.',
+        why: 'A substring must be contiguous. The LCS recurrence takes max(up, left) on a mismatch, which allows a gap, and reports a longer answer than the substring problem allows.',
+        fix: 'For a substring set the cell to 0 on a mismatch and track the maximum cell, instead of carrying the previous best forward.',
+      },
+    ],
+    whenToUse: [
+      'The words longest increasing, longest common, or longest palindromic subsequence.',
+      'Two strings plus deletions, insertions, or "make them equal".',
+      'One array plus "strictly increasing", "chain", or "nesting" after a sort.',
+      'Matching two ordered lists where the matched pairs must keep their order, as in uncrossed lines.',
+    ],
+    whenNotToUse: [
+      'The match must be contiguous; that is a substring problem, so use a different recurrence, a rolling hash or KMP.',
+      'You only need to know whether one string is a subsequence of another; a two-pointer scan does it in O(n) with no table.',
+      'n is around 10^5 and you need LIS; the O(n^2) table is too slow, so use the tails plus binary search version.',
+      'The elements can be reordered freely; sorting or counting solves it, because subsequence problems depend on the given order.',
+      'You need the LCS of many strings at once; that grows to a table with one axis per string and quickly becomes intractable.',
+    ],
+    relatedTopics: [
+      { id: 'dp-2d-grids', kind: 'concept', why: 'The LCS table is filled with the same two-index sweep as a grid, reading the cells above, left and diagonally.' },
+      { id: 'binary-search-variants', kind: 'concept', why: 'The O(n log n) LIS is a lower-bound binary search over the tails array, run once per element.' },
+      { id: 'dp-on-strings', kind: 'concept', why: 'Edit distance, palindromic subsequence and delete operations are all the LCS table with a different transition.' },
+      { id: 'lcs-lis', kind: 'pattern', why: 'The "best answer ending here" template shared by both problems.' },
+    ],
+    quiz: [
+      {
+        question: 'What are the two standard complexities for LIS, and what does the faster one actually return?',
+        options: [
+          'O(n log n) by DP and O(n) with a hash map; both return the sequence',
+          'O(n^2) by DP and O(n log n) with patience sorting plus binary search; the fast one returns the length and needs extra bookkeeping for the sequence',
+          'O(n^2) by DP and O(n^2 log n) with sorting; both return the length',
+          'O(n) by a greedy scan and O(n log n) by sorting; both return the sequence',
+        ],
+        answerIndex: 1,
+        explanation: 'The table compares every pair, giving O(n^2). The tails array replaces the inner loop with one binary search, giving O(n log n), but its contents are not the subsequence, so parent pointers are needed to rebuild it.',
+      },
+      {
+        question: 'In the LCS table, what does dp[i][j] mean when the letters a[i-1] and b[j-1] are different?',
+        options: [
+          'dp[i-1][j-1], because the letters cancel out',
+          'max(dp[i-1][j], dp[i][j-1]), the better of dropping the last letter of either string',
+          '0, because the strings differ at this point',
+          'dp[i-1][j-1] + 1, since a mismatch still counts as a match after an edit',
+        ],
+        answerIndex: 1,
+        explanation: 'A mismatch means at least one of the two last letters cannot be in the common subsequence, so try dropping each and keep the better result.',
+      },
+      {
+        question: 'For arrays a and b of length 2000 each, roughly how many cells does the LCS table have?',
+        options: [
+          'About 4000 cells, so it is linear',
+          'About 4 million cells, which is fine in time but needs care with memory',
+          'About 2^2000 cells, which is impossible',
+          'About 2000 log 2000 cells',
+        ],
+        answerIndex: 1,
+        explanation: 'The table is (m+1) x (n+1), so roughly 2000 x 2000 = 4 million constant-time cells. Two rolling rows cut the memory when the string itself is not needed.',
+      },
+      {
+        question: 'Longest Palindromic Subsequence of s. Would running LCS on s and its reverse work?',
+        options: [
+          'Yes, the LCS of a string and its reverse is exactly the longest palindromic subsequence',
+          'No, that gives the longest palindromic substring instead',
+          'No, it always returns the length of the whole string',
+          'Only when the string has no repeated characters',
+        ],
+        answerIndex: 0,
+        explanation: 'A palindromic subsequence reads the same forwards and backwards, so it is a subsequence of both s and its reverse, and the LCS finds the longest such one in O(n^2).',
+      },
+    ],
+    sources: [
+      'CLRS ch. 15, longest common subsequence',
+      'CP-Algorithms, longest increasing subsequence',
+      'MIT 6.006 lectures on dynamic programming',
+      'USACO Guide, Longest Increasing Subsequence with binary search',
+      'AtCoder Educational DP Contest, problem F (LCS)',
+      'CSES Problem Set, Increasing Subsequence',
+    ],
     problems: [
       {
         id: 'longest-increasing-subsequence',
@@ -2253,6 +2693,222 @@ int editDistance(const string& a, const string& b) {
       'Table index i refers to the first i letters, so the letter is s[i-1].',
     ],
     patternIds: ['dp-2d', 'dp-1d', 'lcs-lis'],
+    definition:
+      'String DP builds a table whose axes are positions in one or two strings, then fills longer answers from shorter ones. Three table shapes cover almost everything: dp over a prefix, dp over a range (i, j), and dp over a pair of prefixes.',
+    coreIdea:
+      'Every edit sequence that turns the first i letters of A into the first j letters of B ends in one of only four situations: the letters matched, or the last move was a replace, a delete or an insert. The cost of each situation is already stored one cell away, so a cell is settled by looking at three neighbours. That collapses the roughly 3^(m+n) edit sequences into (m+1)*(n+1) states, each costing O(1).',
+    visual: [
+      {
+        caption: 'Edit Distance from "horse" to "ros". State: dp[i][j] = edits to turn the first i letters of horse into the first j letters of ros. Base: pure deletes down column 0, pure inserts along row 0.',
+        frame: [
+          '          ""    r     o     s',
+          '   ""  [  0 ][  1 ][  2 ][  3 ]',
+          '   h   [  1 ][  . ][  . ][  . ]',
+          '   o   [  2 ][  . ][  . ][  . ]',
+          '   r   [  3 ][  . ][  . ][  . ]',
+          '   s   [  4 ][  . ][  . ][  . ]',
+          '   e   [  5 ][  . ][  . ][  . ]',
+        ].join('\n'),
+      },
+      {
+        caption: 'A mismatch reads three neighbours. Transition: dp[i][j] = 1 + min(diagonal, up, left).',
+        frame: [
+          '          ""    r     o     s',
+          '   ""  [  0d][  1u][  2 ][  3 ]',
+          '   h   [  1l][  1*][  . ][  . ]',
+          '   o   [  2 ][  . ][  . ][  . ]',
+          '',
+          'd = replace, u = delete, l = insert, * = new cell',
+          'h and r differ, so dp[1][1] = 1 + min(0, 1, 1) = 1',
+        ].join('\n'),
+      },
+      {
+        caption: 'A match copies the diagonal with no cost at all.',
+        frame: [
+          '          ""    r     o     s',
+          '   ""  [  0 ][  1 ][  2 ][  3 ]',
+          '   h   [  1 ][  1d][  2 ][  3 ]',
+          '   o   [  2 ][  2 ][  1*][  . ]',
+          '',
+          'o and o match, so nothing has to be edited here',
+          'dp[2][2] = dp[1][1] = 1',
+        ].join('\n'),
+      },
+      {
+        caption: 'The finished table. The answer is the bottom-right cell.',
+        frame: [
+          '          ""    r     o     s',
+          '   ""  [  0 ][  1 ][  2 ][  3 ]',
+          '   h   [  1 ][  1 ][  2 ][  3 ]',
+          '   o   [  2 ][  2 ][  1 ][  2 ]',
+          '   r   [  3 ][  2 ][  2 ][  2 ]',
+          '   s   [  4 ][  3 ][  3 ][  2 ]',
+          '   e   [  5 ][  4 ][  4 ][  3 ]',
+          '',
+          'horse -> rorse -> rose -> ros, 3 edits',
+        ].join('\n'),
+      },
+      {
+        caption: 'The prefix shape, on Word Break with s = "leetcode" and the words leet and code.',
+        frame: [
+          'i       0  1  2  3  4  5  6  7  8',
+          's       -  l  e  e  t  c  o  d  e',
+          'dp      T  F  F  F  T  F  F  F  T',
+          '        ^           ^           ^',
+          '        +-----------+-----------+',
+          '',
+          'dp[4] from dp[0] because s[0:4] = leet',
+          'dp[8] from dp[4] because s[4:8] = code  ->  true',
+        ].join('\n'),
+      },
+    ],
+    pseudocode: `// Edit Distance, the two-prefix shape.
+// State:      dp[i][j] = cheapest way to turn the first i letters of a
+//             into the first j letters of b.
+// Transition: match    -> dp[i][j] = dp[i-1][j-1]
+//             mismatch -> dp[i][j] = 1 + min(dp[i-1][j-1] replace,
+//                                            dp[i-1][j]   delete,
+//                                            dp[i][j-1]   insert)
+// Base case:  dp[i][0] = i (delete everything), dp[0][j] = j (insert all).
+
+function editDistance(a, b):
+    m = length of a
+    n = length of b
+    create table dp of size (m + 1) x (n + 1)
+    for i from 0 to m:
+        dp[i][0] = i
+    for j from 0 to n:
+        dp[0][j] = j
+    for i from 1 to m:
+        for j from 1 to n:
+            if a[i - 1] equals b[j - 1]:
+                dp[i][j] = dp[i - 1][j - 1]
+            else:
+                dp[i][j] = 1 + min(dp[i - 1][j - 1],
+                                   dp[i - 1][j],
+                                   dp[i][j - 1])
+    return dp[m][n]`,
+    complexity: [
+      { label: 'Recursive edit distance', time: 'O(3^(m+n))', space: 'O(m + n)', note: 'three branches per mismatch, the same prefix pair re-solved endlessly' },
+      { label: 'Edit distance table', time: 'O(m * n)', space: 'O(m * n)', note: 'each prefix pair filled once; keep the table to print the edit script' },
+      { label: 'Edit distance, two rows', time: 'O(m * n)', space: 'O(min(m, n))', note: 'distance only, no reconstruction' },
+      { label: 'Word Break, prefix table', time: 'O(n^2) checks', space: 'O(n)', note: 'each slice costs up to O(n) to build, so O(n^3) in the worst case; cap the split by the longest word' },
+      { label: 'Palindrome range table', time: 'O(n^2)', space: 'O(n^2)', note: 'every (start, end) pair, filled by increasing length' },
+    ],
+    dryRun: {
+      input: 'a = "horse", b = "ros"',
+      goal: 'Compute the fewest single-character inserts, deletes and replaces that turn horse into ros, using the (m+1) x (n+1) table.',
+      steps: [
+        { state: 'row 0 = [0, 1, 2, 3], column 0 = [0, 1, 2, 3, 4, 5]', action: 'Base cases: turning an empty string into j letters costs j inserts, and turning i letters into nothing costs i deletes.' },
+        { state: 'i=1 (h), row = [1, 1, 2, 3]', action: 'h never matches r, o or s, so each cell is 1 + min of its three neighbours.' },
+        { state: 'i=2 (o), row = [2, 2, 1, 2]', action: 'At j=2 the letters o and o match, so dp[2][2] copies the diagonal dp[1][1] = 1 with no cost.' },
+        { state: 'i=3 (r), row = [3, 2, 2, 2]', action: 'At j=1 the letters r and r match, so dp[3][1] = dp[2][0] = 2.' },
+        { state: 'i=4 (s), row = [4, 3, 3, 2]', action: 'At j=3 the letters s and s match, so dp[4][3] = dp[3][2] = 2.' },
+        { state: 'i=5 (e), row = [5, 4, 4, 3]', action: 'e matches nothing, so dp[5][3] = 1 + min(dp[4][2]=3, dp[4][3]=2, dp[5][2]=4) = 3.' },
+        { state: 'dp[5][3] = 3', action: 'Return the bottom-right cell.' },
+      ],
+      result: '3, and the edits can be read back: replace h with r (rorse), delete r (rose), delete e (ros). No two edits can do it, since the strings share only o and s in order.',
+    },
+    mistakes: [
+      {
+        mistake: 'Comparing a[i] with b[j] inside a padded table.',
+        why: 'Row i stands for the first i letters, so the letters under comparison are a[i-1] and b[j-1]. Using a[i] shifts the whole table by one and reads past the end of the string.',
+        fix: 'Write down what row i means before the loop, and subtract one every time you touch the string.',
+      },
+      {
+        mistake: 'Filling a palindrome range table with i running from 0 upward.',
+        why: 'dp[i][j] needs dp[i+1][j-1], the shorter range inside it. Going forwards means that cell is still false, so long palindromes are missed.',
+        fix: 'Loop i from the last index backwards, or loop over increasing substring lengths, so the inside is always ready.',
+      },
+      {
+        mistake: 'Leaving the Word Break dictionary as a list.',
+        why: 'Each membership test then scans every word, so an O(n^2) algorithm quietly becomes O(n^2 * words) and times out on long inputs.',
+        fix: 'Convert the dictionary to a set once, and stop the inner loop at the length of the longest word.',
+      },
+      {
+        mistake: 'Forgetting dp[0] = true in a prefix table.',
+        why: 'The empty prefix is what every first word builds on. Without it the whole table stays false and the answer is always no.',
+        fix: 'Set the empty-prefix cell before the loop and check it on the smallest possible input.',
+      },
+      {
+        mistake: 'Assuming Longest Palindromic Substring and Longest Palindromic Subsequence share one table.',
+        why: 'The substring version needs contiguity, so a mismatch kills the range; the subsequence version may skip letters and takes max(dp[i+1][j], dp[i][j-1]) instead. Swapping them gives an answer that is too long or too short.',
+        fix: 'Decide first whether gaps are allowed, then pick the transition that matches.',
+      },
+    ],
+    whenToUse: [
+      'Prefix shape: "can this string be segmented", "how many ways to decode", "break into dictionary words".',
+      'Range shape: palindromes, or anything about the substring between i and j and its inside.',
+      'Two-prefix shape: "transform A into B", "minimum deletions", "interleave", "match this pattern".',
+      'The strings are at most a few thousand characters, so an m x n table fits in memory.',
+    ],
+    whenNotToUse: [
+      'You only need to find a fixed pattern inside a text; KMP, Z-function or a rolling hash is O(n + m) and needs no table.',
+      'You need every palindromic substring boundary in linear time; the Manacher algorithm beats the O(n^2) table.',
+      'The strings are 10^5 characters and the table would need 10^10 cells; look for a linear string algorithm or a suffix structure.',
+      'You are searching many words in one text; a trie or an Aho-Corasick automaton handles that better than repeated DP.',
+      'The question is simply "is A a subsequence of B"; a two-pointer scan answers it in O(n) with O(1) memory.',
+    ],
+    relatedTopics: [
+      { id: 'lcs-and-lis', kind: 'concept', why: 'The two-prefix table here is the LCS table with a different transition, and many string answers reduce to LCS.' },
+      { id: 'dp-2d-grids', kind: 'concept', why: 'Filling order and neighbour dependencies work exactly as they do in a grid sweep.' },
+      { id: 'strings-basics', kind: 'concept', why: 'Slicing cost and character indexing decide whether a correct string DP is actually fast enough.' },
+      { id: 'tries', kind: 'concept', why: 'A trie replaces the dictionary set in Word Break and cuts the wasted substring checks.' },
+    ],
+    quiz: [
+      {
+        question: 'In the edit distance table, which three neighbours does a mismatch read, and what do they mean?',
+        options: [
+          'Left, right and diagonal: insert, delete and replace',
+          'Diagonal, up and left: replace, delete and insert',
+          'Up, down and diagonal: delete, insert and match',
+          'Only the diagonal, because the other two are for matches',
+        ],
+        answerIndex: 1,
+        explanation: 'The diagonal consumes one letter of each string, which is a replace; up consumes one letter of A, a delete; left consumes one letter of B, an insert.',
+      },
+      {
+        question: 'A palindrome range table is filled with i going from 0 up to n-1. What goes wrong?',
+        options: [
+          'Nothing, the order does not matter for booleans',
+          'dp[i+1][j-1] has not been computed yet, so longer palindromes are reported as false',
+          'The table overflows',
+          'Only palindromes of even length break',
+        ],
+        answerIndex: 1,
+        explanation: 'A range depends on the shorter range inside it, which has a larger start index. Loop i backwards, or by increasing length, so the inside is ready.',
+      },
+      {
+        question: 'Word Break on a string of length 300 with a dictionary of 1000 words. Which cost estimate is honest?',
+        options: [
+          'O(n) because there is a single loop',
+          'About n^2 substring checks, each costing up to O(n) to build the slice, so roughly O(n^3) in the worst case unless you cap the split by the longest word',
+          'O(n * words) with no dependence on the string length',
+          'O(2^n), since every split has to be tried',
+        ],
+        answerIndex: 1,
+        explanation: 'The double loop gives n^2 candidate splits, and building each substring is linear in its length. A set makes the lookup O(1) on average, and capping the inner loop by the longest word removes most of the work.',
+      },
+      {
+        question: 'You must check whether "ace" is a subsequence of "abcde". Is a DP table the right tool?',
+        options: [
+          'Yes, build the m x n LCS table and compare with the length of "ace"',
+          'No, walk both strings with two pointers in O(n) time and O(1) space',
+          'No, sort both strings first and compare',
+          'Yes, but only a range table will work',
+        ],
+        answerIndex: 1,
+        explanation: 'Membership needs no optimisation, only a greedy scan: advance through the long string and consume the short one whenever the letters match.',
+      },
+    ],
+    sources: [
+      'CLRS ch. 15, Dynamic Programming',
+      'MIT 6.006 lectures on dynamic programming and edit distance',
+      'CP-Algorithms, dynamic programming and string processing sections',
+      'USACO Guide, DP on strings',
+      'CSES Problem Set, Edit Distance',
+      'AtCoder Educational DP Contest, problem F (LCS)',
+    ],
     problems: [
       {
         id: 'word-break',
