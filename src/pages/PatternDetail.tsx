@@ -27,7 +27,7 @@ export default function PatternDetail() {
           <Eyebrow system>Pattern</Eyebrow>
           <Kanji>型</Kanji>
           {p.relatedGateIds.map((g) => (
-            <Link key={g} to={`/gates/${g}`} className="chip hover:border-[rgba(77,163,255,0.5)]">
+            <Link key={g} to={`/gates/${g}`} className="chip hover:border-[rgb(var(--accent-rgb)/0.5)]">
               {getGate(g)?.name}
             </Link>
           ))}

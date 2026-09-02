@@ -55,7 +55,7 @@ export default function SystemMessages() {
         {big && (
           <motion.div
             key={big.id}
-            className="fixed inset-0 z-[70] grid place-items-center bg-[rgba(5,7,10,0.72)] backdrop-blur-md"
+            className="fixed inset-0 z-[70] grid place-items-center bg-[rgb(var(--bg-rgb)/0.72)] backdrop-blur-md"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

@@ -26,7 +26,7 @@ export default function CodeTabs({ code, title, className }: { code: CodeBlock; 
 
   return (
     <div className={cx('code-block', className)}>
-      <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--line)] bg-[rgba(223,231,224,0.02)]">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--line)] bg-[rgb(var(--fg-rgb)/0.02)]">
         <div className="flex items-center gap-1">
           {title && <span className="eyebrow mr-3">{title}</span>}
           {available.map((l) => (
@@ -35,7 +35,7 @@ export default function CodeTabs({ code, title, className }: { code: CodeBlock; 
               onClick={() => setLang(l)}
               className={cx(
                 'px-2.5 py-1 rounded-md text-[11.5px] tracking-wide transition-colors',
-                l === lang ? 'bg-[rgba(77,163,255,0.14)] text-[#cfe6ff]' : 'text-muted hover:text-bone',
+                l === lang ? 'bg-[rgb(var(--accent-rgb)/0.14)] text-[#cfe6ff]' : 'text-muted hover:text-bone',
               )}
             >
               {LANG_LABEL[l]}

@@ -39,7 +39,7 @@ export default function Calendar() {
         kanji="暦"
         title="Every day the System remembers."
         right={
-          <div className="flex gap-1 p-1 rounded-xl border border-[var(--line)] bg-[rgba(5,7,10,0.5)]">
+          <div className="flex gap-1 p-1 rounded-xl border border-[var(--line)] bg-[rgb(var(--bg-rgb)/0.5)]">
             <button className={cx('btn btn-sm border-0', view === 'month' && 'btn-system')} onClick={() => setView('month')}>
               Month
             </button>
@@ -90,11 +90,11 @@ export default function Calendar() {
                     className={cx(
                       'relative aspect-square rounded-lg border text-left p-1.5 transition-all',
                       inMonth ? 'border-[var(--line-soft)]' : 'border-transparent opacity-30',
-                      !study && inMonth && 'bg-[rgba(223,231,224,0.02)]',
-                      sel && 'border-[rgba(77,163,255,0.7)] shadow-[0_0_16px_-4px_rgba(77,163,255,0.5)]',
-                      isToday && !sel && 'border-[rgba(77,163,255,0.35)]',
-                      cleared && 'bg-[rgba(95,212,162,0.08)]',
-                      missed > 0 && 'bg-[rgba(255,90,60,0.08)]',
+                      !study && inMonth && 'bg-[rgb(var(--fg-rgb)/0.02)]',
+                      sel && 'border-[rgb(var(--accent-rgb)/0.7)] shadow-[0_0_16px_-4px_rgb(var(--accent-rgb)/0.5)]',
+                      isToday && !sel && 'border-[rgb(var(--accent-rgb)/0.35)]',
+                      cleared && 'bg-[rgb(var(--good-rgb)/0.08)]',
+                      missed > 0 && 'bg-[rgb(var(--warn-rgb)/0.08)]',
                     )}
                   >
                     <span className={cx('mono text-[11px]', isToday ? 'text-system' : study ? 'text-bone-dim' : 'text-muted')}>{format(d, 'd')}</span>
@@ -108,7 +108,7 @@ export default function Calendar() {
                       {Array.from({ length: Math.min(pending, 4) }).map((_, i) => (
                         <span key={'p' + i} className={cx('w-1.5 h-1.5 rounded-full', past ? 'bg-ember' : 'bg-system')} />
                       ))}
-                      {qs.length === 0 && planned > 0 && <span className="w-1.5 h-1.5 rounded-full bg-[rgba(77,163,255,0.3)]" />}
+                      {qs.length === 0 && planned > 0 && <span className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--accent-rgb)/0.3)]" />}
                     </div>
                     {state.lightDays.includes(key) && <Feather size={10} className="absolute top-1.5 right-1.5 text-muted" />}
                   </button>
@@ -119,7 +119,7 @@ export default function Calendar() {
               <span className="flex items-center gap-1.5"><i className="w-1.5 h-1.5 rounded-full bg-jade inline-block" /> done</span>
               <span className="flex items-center gap-1.5"><i className="w-1.5 h-1.5 rounded-full bg-system inline-block" /> pending</span>
               <span className="flex items-center gap-1.5"><i className="w-1.5 h-1.5 rounded-full bg-ember inline-block" /> missed</span>
-              <span className="flex items-center gap-1.5"><i className="w-1.5 h-1.5 rounded-full bg-[rgba(77,163,255,0.3)] inline-block" /> forecast</span>
+              <span className="flex items-center gap-1.5"><i className="w-1.5 h-1.5 rounded-full bg-[rgb(var(--accent-rgb)/0.3)] inline-block" /> forecast</span>
               <span className="flex items-center gap-1.5"><Feather size={10} /> light day</span>
             </div>
           </Panel>
@@ -250,7 +250,7 @@ function Timetable() {
             const on = profile.studyDays.includes(d)
             const isBossDay = d === 6
             return (
-              <div key={d} className={cx('rounded-lg border p-2 text-center', on ? 'border-[rgba(77,163,255,0.35)] bg-[rgba(77,163,255,0.05)]' : 'border-[var(--line-soft)] opacity-50')}>
+              <div key={d} className={cx('rounded-lg border p-2 text-center', on ? 'border-[rgb(var(--accent-rgb)/0.35)] bg-[rgb(var(--accent-rgb)/0.05)]' : 'border-[var(--line-soft)] opacity-50')}>
                 <div className="eyebrow">{WEEKDAY_SHORT[d]}</div>
                 <div className="text-[11px] mt-1 text-bone-dim">{on ? (isBossDay ? 'boss / mixed' : 'study') : 'rest'}</div>
               </div>

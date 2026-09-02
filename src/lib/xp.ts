@@ -43,13 +43,14 @@ export const rankTitle: Record<Rank, string> = {
   S: 'Monarch',
 }
 
+/** Rank colours follow the active theme so they stay legible on light backgrounds. */
 export const rankColor: Record<Rank, string> = {
-  E: '#aab4ad',
-  D: '#5fd4a2',
-  C: '#4da3ff',
-  B: '#9b7bff',
-  A: '#c9a24a',
-  S: '#ff5a3c',
+  E: 'var(--fg-muted)',
+  D: 'var(--good)',
+  C: 'var(--accent)',
+  B: 'var(--violet)',
+  A: 'var(--gold)',
+  S: 'var(--warn)',
 }
 
 export const XP = {

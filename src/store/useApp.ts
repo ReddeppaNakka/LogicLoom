@@ -6,6 +6,7 @@ import { addDaysKey, isStudyDay, nextStudyDay, todayKey } from '@/lib/dates'
 import { levelFromXp, rankForLevel, XP } from '@/lib/xp'
 import { getConcept, getProblem } from '@/lib/content'
 import type { Lang } from '@/content/types'
+import { defaultAppearance, type Appearance } from '@/lib/appearance'
 
 const uid = () => (typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2))
 const nowIso = () => new Date().toISOString()
@@ -50,6 +51,10 @@ interface Actions {
   /** Distraction-free reading: hides the sidebar and widens the margins. */
   focusMode: boolean
   toggleFocusMode: () => void
+
+  appearance: Appearance
+  setAppearance: (patch: Partial<Appearance>) => void
+  resetAppearance: () => void
 
   completeOnboarding: (p: Partial<Profile>) => void
   updateProfile: (p: Partial<Profile>) => void
@@ -121,7 +126,10 @@ export const useApp = create<AppState>()(
       ...initialPersisted,
       messages: [],
       focusMode: false,
+      appearance: defaultAppearance,
 
+      setAppearance: (patch) => set((s) => ({ appearance: { ...s.appearance, ...patch } })),
+      resetAppearance: () => set({ appearance: defaultAppearance }),
       toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
       dismissMessage: (id) => set((s) => ({ messages: s.messages.filter((m) => m.id !== id) })),
       pushMessage: (m) => set((s) => ({ messages: [...s.messages, { ...m, id: uid() }] })),
@@ -371,6 +379,11 @@ export const useApp = create<AppState>()(
     }),
     {
       name: 'the-system-dsa-v1',
+      /** Fill in appearance keys added after a save was written. */
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<AppState>
+        return { ...current, ...p, appearance: { ...defaultAppearance, ...(p.appearance ?? {}) } }
+      },
       partialize: (s) => {
         const { messages: _m, ...rest } = s as AppState
         void _m

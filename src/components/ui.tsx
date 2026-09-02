@@ -45,7 +45,7 @@ export function RankBadge({ rank, size = 44, className }: { rank: Rank; size?: n
       title={`${rank}-rank · ${rankTitle[rank]}`}
     >
       <svg viewBox="0 0 48 48" width={size} height={size} className="absolute inset-0">
-        <polygon points="24,3 43,14 43,34 24,45 5,34 5,14" fill="rgba(5,7,10,0.7)" stroke={color} strokeWidth="1.2" />
+        <polygon points="24,3 43,14 43,34 24,45 5,34 5,14" fill="rgb(var(--bg-rgb)/0.7)" stroke={color} strokeWidth="1.2" />
         <polygon points="24,8 39,17 39,31 24,40 9,31 9,17" fill="none" stroke={color} strokeOpacity="0.35" strokeWidth="0.8" />
       </svg>
       <span className="display relative" style={{ color, fontSize: size * 0.48, textShadow: `0 0 16px ${color}` }}>

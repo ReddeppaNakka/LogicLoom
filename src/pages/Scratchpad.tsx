@@ -123,7 +123,7 @@ export default function Scratchpad() {
         title="Try the idea before you trust it."
         right={
           <div className="flex items-center gap-2">
-            <div className="flex gap-1 p-1 rounded-xl border border-[var(--line)] bg-[rgba(5,7,10,0.5)]">
+            <div className="flex gap-1 p-1 rounded-xl border border-[var(--line)] bg-[rgb(var(--bg-rgb)/0.5)]">
               {(['python', 'javascript'] as RunLang[]).map((l) => (
                 <button key={l} className={cx('btn btn-sm border-0 capitalize', lang === l && 'btn-system')} onClick={() => setLang(l)}>
                   {l}

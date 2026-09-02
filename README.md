@@ -4,6 +4,16 @@ A personal, Solo Leveling–style trainer for data structures and algorithms. Th
 
 Everything runs in the browser. Progress is saved in `localStorage`; export a backup from Settings.
 
+## Appearance
+
+The Appearance page controls how the app looks. Nine colour themes (seven dark, two light), eight background
+styles, and a separate background choice for reading and practice pages so a moving background can be kept for
+browsing and switched off where concentration matters. Motion can be set to full, calm or still, and reading
+text size, line width, film grain and the sheet behind long passages are all adjustable.
+
+Themes are pure CSS: each id in `src/lib/appearance.ts` matches a `:root[data-theme="..."]` block in
+`src/styles/global.css`. To add one, copy a block, change the tokens, and add an entry to `THEMES`.
+
 ## Run locally
 
 ```bash

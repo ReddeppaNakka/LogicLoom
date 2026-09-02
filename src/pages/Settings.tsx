@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
-import { Download, Upload, AlertTriangle } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Download, Upload, AlertTriangle, Palette } from 'lucide-react'
 import { useApp } from '@/store/useApp'
 import { WEEKDAY_SHORT } from '@/lib/dates'
 import { LANG_LABEL } from '@/components/CodeTabs'
@@ -84,6 +85,16 @@ export default function SettingsPage() {
           </div>
           <p className="text-[12px] text-muted mt-2">Rest days never break your streak. Reviews that fall due still show up on them.</p>
         </div>
+      </Panel>
+
+      <Panel className="p-6 mb-5 flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <Eyebrow className="mb-1">Look and feel</Eyebrow>
+          <div className="text-[13.5px] text-bone-dim">Themes, backgrounds, motion and reading comfort live on their own page.</div>
+        </div>
+        <Link to="/appearance" className="btn btn-system">
+          <Palette size={14} /> Open appearance
+        </Link>
       </Panel>
 
       <Panel className="p-6 mb-5">

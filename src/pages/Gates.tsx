@@ -25,7 +25,7 @@ export default function Gates() {
       <p className="text-bone-dim max-w-2xl -mt-2 mb-8">Gates open in order. Each one is a topic; inside are concepts to learn and problems to clear. You can always look ahead, but the daily quest follows this path.</p>
 
       <div className="relative">
-        <div className="absolute left-[27px] top-6 bottom-6 w-px bg-[linear-gradient(180deg,rgba(77,163,255,0.5),rgba(223,231,224,0.08))] hidden sm:block" />
+        <div className="absolute left-[27px] top-6 bottom-6 w-px bg-[linear-gradient(180deg,rgb(var(--accent-rgb)/0.5),rgb(var(--fg-rgb)/0.08))] hidden sm:block" />
         <div className="space-y-4">
           {gates.map((g, i) => {
             const s = stats.byGate[g.id]
@@ -35,12 +35,12 @@ export default function Gates() {
             return (
               <motion.div key={g.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7, ease, delay: i * 0.04 }}>
                 <Link to={`/gates/${g.id}`} className="block group">
-                  <Panel variant={active ? 'system' : undefined} corner={active} className={cx('sm:ml-14 p-5 transition-all group-hover:border-[rgba(223,231,224,0.28)]', locked && 'opacity-60')}>
-                    <div className="hidden sm:grid absolute -left-[46px] top-1/2 -translate-y-1/2 w-9 h-9 place-items-center rounded-full border bg-ink" style={{ borderColor: cleared ? '#5fd4a2' : active ? '#4da3ff' : 'rgba(223,231,224,0.2)', boxShadow: active ? '0 0 18px rgba(77,163,255,0.5)' : undefined }}>
+                  <Panel variant={active ? 'system' : undefined} corner={active} className={cx('sm:ml-14 p-5 transition-all group-hover:border-[rgb(var(--fg-rgb)/0.28)]', locked && 'opacity-60')}>
+                    <div className="hidden sm:grid absolute -left-[46px] top-1/2 -translate-y-1/2 w-9 h-9 place-items-center rounded-full border bg-ink" style={{ borderColor: cleared ? 'var(--good)' : active ? 'var(--accent)' : 'rgb(var(--fg-rgb)/0.2)', boxShadow: active ? '0 0 18px rgb(var(--accent-rgb)/0.5)' : undefined }}>
                       {cleared ? <Check size={14} className="text-jade" /> : locked ? <Lock size={12} className="text-muted" /> : <span className="mono text-[11px] text-system">{String(g.order).padStart(2, '0')}</span>}
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="display text-[30px] w-10 text-center shrink-0" style={{ color: rankColor[g.rank], textShadow: `0 0 18px ${rankColor[g.rank]}66` }}>
+                      <div className="display text-[30px] w-10 text-center shrink-0" style={{ color: rankColor[g.rank], textShadow: `0 0 18px color-mix(in srgb, ${rankColor[g.rank]} 40%, transparent)` }}>
                         {g.rank}
                       </div>
                       <div className="flex-1 min-w-0">

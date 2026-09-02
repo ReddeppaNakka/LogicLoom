@@ -1,17 +1,48 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
+import type { BackgroundId, MotionLevel } from '@/lib/appearance'
+import { getBackground, readAccent } from '@/lib/appearance'
 
 /**
- * Ambient Three.js particle field: slow drifting motes with a faint blue glow,
- * like dust in a dark dungeon. Kept very subtle so it never distracts from reading.
+ * Renders whichever background the user picked.
+ *
+ * Everything except "motes" is a pure CSS layer, so switching is instant and
+ * costs nothing. The particle canvas is only mounted when it is actually
+ * selected, and it holds still (renders one frame) when motion is not full.
  */
-export default function Background() {
+export default function AppBackground({ id, motion }: { id: BackgroundId; motion: MotionLevel }) {
+  const def = getBackground(id)
+  if (def.className) return <div className={`bg-layer ${def.className}`} aria-hidden />
+  return <Motes animate={motion === 'full'} />
+}
+
+/** True when the page background is bright, so the motes need dark ink instead of light. */
+const isLightPage = () => {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue('--bg-rgb').trim()
+  const [r, g, b] = raw ? raw.split(/\s+/).map(Number) : [5, 7, 10]
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 140
+}
+
+function Motes({ animate }: { animate: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null)
+  const [accent, setAccent] = useState(readAccent)
+  const [light, setLight] = useState(isLightPage)
+
+  // The accent follows the theme; re-read it whenever the attribute changes.
+  useEffect(() => {
+    const obs = new MutationObserver(() => {
+      setAccent(readAccent())
+      setLight(isLightPage())
+    })
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    return () => obs.disconnect()
+  }, [])
 
   useEffect(() => {
     const canvas = ref.current
     if (!canvas) return
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const moving = animate && !reduce
 
     const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false, powerPreference: 'low-power' })
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
@@ -36,16 +67,17 @@ export default function Background() {
       size: 0.12,
       map: sprite,
       transparent: true,
-      opacity: 0.55,
-      color: new THREE.Color('#7cc0ff'),
+      // Additive light works on dark grounds; on a bright page the motes must
+      // darken the background instead, or they disappear into the white.
+      opacity: light ? 0.3 : 0.55,
+      color: new THREE.Color(accent),
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      blending: light ? THREE.NormalBlending : THREE.AdditiveBlending,
       sizeAttenuation: true,
     })
     const points = new THREE.Points(geo, mat)
     scene.add(points)
 
-    // a second, larger and dimmer layer for depth
     const geo2 = geo.clone()
     const mat2 = mat.clone()
     mat2.size = 0.32
@@ -62,6 +94,7 @@ export default function Background() {
       renderer.setSize(w, h, false)
       camera.aspect = w / h
       camera.updateProjectionMatrix()
+      if (!moving) renderer.render(scene, camera)
     }
     resize()
     window.addEventListener('resize', resize)
@@ -72,7 +105,6 @@ export default function Background() {
       mx = (e.clientX / w - 0.5) * 2
       my = (e.clientY / h - 0.5) * 2
     }
-    window.addEventListener('pointermove', onMove)
 
     let raf = 0
     const start = performance.now()
@@ -92,14 +124,19 @@ export default function Background() {
       renderer.render(scene, camera)
       raf = requestAnimationFrame(tick)
     }
-    if (reduce) renderer.render(scene, camera)
-    else raf = requestAnimationFrame(tick)
 
     const onVis = () => {
       if (document.hidden) cancelAnimationFrame(raf)
-      else if (!reduce) raf = requestAnimationFrame(tick)
+      else if (moving) raf = requestAnimationFrame(tick)
     }
-    document.addEventListener('visibilitychange', onVis)
+
+    if (moving) {
+      window.addEventListener('pointermove', onMove)
+      document.addEventListener('visibilitychange', onVis)
+      raf = requestAnimationFrame(tick)
+    } else {
+      renderer.render(scene, camera)
+    }
 
     return () => {
       cancelAnimationFrame(raf)
@@ -113,7 +150,7 @@ export default function Background() {
       sprite.dispose()
       renderer.dispose()
     }
-  }, [])
+  }, [animate, accent, light])
 
   return <canvas ref={ref} className="fixed inset-0 z-0 pointer-events-none" aria-hidden />
 }
@@ -125,9 +162,10 @@ function makeSprite(): THREE.Texture {
   c.height = size
   const ctx = c.getContext('2d')!
   const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2)
+  // Neutral white so the material's colour, which follows the theme, decides the hue.
   g.addColorStop(0, 'rgba(255,255,255,1)')
-  g.addColorStop(0.3, 'rgba(180,220,255,0.6)')
-  g.addColorStop(1, 'rgba(0,0,0,0)')
+  g.addColorStop(0.3, 'rgba(255,255,255,0.6)')
+  g.addColorStop(1, 'rgba(255,255,255,0)')
   ctx.fillStyle = g
   ctx.fillRect(0, 0, size, size)
   const tex = new THREE.CanvasTexture(c)

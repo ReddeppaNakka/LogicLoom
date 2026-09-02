@@ -59,7 +59,7 @@ export default function Boss() {
 
       <Panel variant={done ? 'gold' : 'danger'} corner className="p-6 mb-6 flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl grid place-items-center border border-[rgba(224,35,28,0.5)] bg-[rgba(224,35,28,0.1)] text-ember">
+          <div className="w-12 h-12 rounded-xl grid place-items-center border border-[rgb(var(--danger-rgb)/0.5)] bg-[rgb(var(--danger-rgb)/0.1)] text-ember">
             <Skull size={22} />
           </div>
           <div>
@@ -83,7 +83,7 @@ export default function Boss() {
         {probs.map((p, i) => {
           const r = results[p.id]
           return (
-            <Panel key={p.id} className={cx('p-4', r === 'solved' && 'border-[rgba(95,212,162,0.4)]', r === 'failed' && 'border-[rgba(255,90,60,0.4)]')}>
+            <Panel key={p.id} className={cx('p-4', r === 'solved' && 'border-[rgb(var(--good-rgb)/0.4)]', r === 'failed' && 'border-[rgb(var(--warn-rgb)/0.4)]')}>
               <div className="flex items-center gap-3 flex-wrap">
                 <span className="mono text-[11px] text-muted">{String(i + 1).padStart(2, '0')}</span>
                 <a href={p.url} target="_blank" rel="noreferrer" className="text-[15px] font-medium hover:text-system">

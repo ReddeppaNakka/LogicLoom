@@ -29,7 +29,7 @@ export default function GateDetail() {
           <h1 className="display text-[40px] md:text-[52px] leading-none mt-1">{gate.codename}</h1>
           <div className="text-bone-dim mt-1">{gate.name}</div>
         </div>
-        <div className="display text-[64px] leading-none" style={{ color: rankColor[gate.rank], textShadow: `0 0 24px ${rankColor[gate.rank]}66` }}>
+        <div className="display text-[64px] leading-none" style={{ color: rankColor[gate.rank], textShadow: `0 0 24px color-mix(in srgb, ${rankColor[gate.rank]} 40%, transparent)` }}>
           {gate.rank}
         </div>
       </div>
@@ -45,8 +45,8 @@ export default function GateDetail() {
               const cSolved = c.problems.filter((p) => attempts[p.id]?.status === 'solved').length
               return (
                 <Link key={c.id} to={`/learn/${c.id}`} className="block group">
-                  <Panel className={cx('p-4 flex items-center gap-4 transition-all group-hover:border-[rgba(223,231,224,0.28)]', done && 'opacity-80')}>
-                    <div className={cx('w-9 h-9 rounded-lg grid place-items-center border shrink-0', done ? 'border-[rgba(95,212,162,0.4)] text-jade' : 'border-[var(--line)] text-muted')}>
+                  <Panel className={cx('p-4 flex items-center gap-4 transition-all group-hover:border-[rgb(var(--fg-rgb)/0.28)]', done && 'opacity-80')}>
+                    <div className={cx('w-9 h-9 rounded-lg grid place-items-center border shrink-0', done ? 'border-[rgb(var(--good-rgb)/0.4)] text-jade' : 'border-[var(--line)] text-muted')}>
                       {done ? <Check size={15} /> : <span className="mono text-[11px]">{String(i + 1).padStart(2, '0')}</span>}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -79,7 +79,7 @@ export default function GateDetail() {
                   const p = getPattern(id)
                   if (!p) return null
                   return (
-                    <Link key={id} to={`/patterns/${id}`} className="block px-3 py-2 rounded-lg border border-[var(--line)] hover:border-[rgba(77,163,255,0.5)] hover:bg-[rgba(77,163,255,0.05)] transition-all">
+                    <Link key={id} to={`/patterns/${id}`} className="block px-3 py-2 rounded-lg border border-[var(--line)] hover:border-[rgb(var(--accent-rgb)/0.5)] hover:bg-[rgb(var(--accent-rgb)/0.05)] transition-all">
                       <div className="text-[13.5px]">{p.name}</div>
                       <div className="text-[11.5px] text-muted">{p.tagline}</div>
                     </Link>
@@ -99,7 +99,7 @@ export default function GateDetail() {
                 const st = attempts[p.id]?.status
                 return (
                   <Link key={p.id} to={`/learn/${p.conceptIds[0]}#p-${p.id}`} className="flex items-center gap-2 text-[13px] py-1.5 border-b border-[var(--line-soft)] last:border-0">
-                    <span className={cx('w-1.5 h-1.5 rounded-full shrink-0', st === 'solved' ? 'bg-jade' : st === 'failed' ? 'bg-ember' : 'bg-[rgba(223,231,224,0.2)]')} />
+                    <span className={cx('w-1.5 h-1.5 rounded-full shrink-0', st === 'solved' ? 'bg-jade' : st === 'failed' ? 'bg-ember' : 'bg-[rgb(var(--fg-rgb)/0.2)]')} />
                     <span className={cx('flex-1 truncate', st === 'solved' && 'text-muted')}>{p.title}</span>
                     <Chip tone={p.difficulty}>{difficultyLabel[p.difficulty]}</Chip>
                   </Link>

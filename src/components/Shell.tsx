@@ -1,11 +1,12 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { LayoutDashboard, Map, Sparkles, CalendarDays, Gauge, ListChecks, NotebookPen, Settings, Code2, Menu, X, Flame, Minimize2 } from 'lucide-react'
+import { LayoutDashboard, Map, Sparkles, CalendarDays, Gauge, ListChecks, NotebookPen, Settings, Code2, Menu, X, Flame, Minimize2, Palette } from 'lucide-react'
 import { useApp } from '@/store/useApp'
 import { levelFromXp, rankTitle } from '@/lib/xp'
-import Background from './Background'
-import ReadingBackdrop from './ReadingBackdrop'
+import { MotionConfig } from 'framer-motion'
+import AppBackground from './AppBackground'
 import SystemMessages from './SystemMessages'
+import { applyAppearance } from '@/lib/appearance'
 import { Bar, RankBadge, cx } from './ui'
 
 /**
@@ -19,6 +20,8 @@ export const isCalmRoute = (pathname: string) =>
   pathname === '/scratchpad' ||
   (pathname.startsWith('/patterns/') && pathname.length > '/patterns/'.length)
 
+const motionSetting = { full: false, calm: false, still: true } as const
+
 const NAV = [
   { to: '/', label: 'Status', icon: LayoutDashboard, jp: '状態' },
   { to: '/gates', label: 'Gates', icon: Map, jp: '門' },
@@ -28,6 +31,7 @@ const NAV = [
   { to: '/problems', label: 'Problems', icon: ListChecks, jp: '題' },
   { to: '/log', label: 'Mistake log', icon: NotebookPen, jp: '記' },
   { to: '/scratchpad', label: 'Scratchpad', icon: Code2, jp: '書' },
+  { to: '/appearance', label: 'Appearance', icon: Palette, jp: '彩' },
   { to: '/settings', label: 'Settings', icon: Settings, jp: '設' },
 ]
 
@@ -37,11 +41,20 @@ export default function Shell() {
   const streak = useApp((s) => s.streak)
   const ensureToday = useApp((s) => s.ensureToday)
   const focusMode = useApp((s) => s.focusMode)
+  const appearance = useApp((s) => s.appearance)
   const [open, setOpen] = useState(false)
   const loc = useLocation()
   const info = levelFromXp(totalXp)
   const calm = isCalmRoute(loc.pathname)
   const hasOwnFocusToggle = loc.pathname.startsWith('/learn/') || loc.pathname.startsWith('/patterns/')
+
+  // Reading pages get their own background unless the user asked for one look.
+  const backgroundId = calm && !appearance.sameBackgroundEverywhere ? appearance.readingBackground : appearance.background
+  const effectiveMotion = appearance.motion === 'full' && calm && !appearance.sameBackgroundEverywhere ? 'calm' : appearance.motion
+
+  useEffect(() => {
+    applyAppearance(appearance)
+  }, [appearance])
 
   useEffect(() => {
     ensureToday()
@@ -55,27 +68,29 @@ export default function Shell() {
   }, [loc.pathname])
 
   return (
-    <div className={cx('min-h-full', !calm && 'grain', calm && focusMode && 'focus-mode')}>
-      {calm ? (
-        <ReadingBackdrop />
-      ) : (
-        <>
-          <div className="aurora" />
-          <Background />
-        </>
+    <MotionConfig reducedMotion={motionSetting[appearance.motion] ? 'always' : 'user'}>
+    <div
+      className={cx(
+        'min-h-full',
+        appearance.grain && 'grain',
+        appearance.motion === 'still' && 'motion-still',
+        !appearance.readingSheet && 'no-sheet',
+        calm && focusMode && 'focus-mode',
       )}
+    >
+      <AppBackground id={backgroundId} motion={effectiveMotion} />
 
       {/* Sidebar */}
       <aside
         className={cx(
-          'fixed z-40 top-0 left-0 h-full w-[var(--nav-w)] border-r border-[var(--line)] bg-[rgba(5,7,10,0.72)] backdrop-blur-xl flex flex-col transition-transform duration-500',
+          'fixed z-40 top-0 left-0 h-full w-[var(--nav-w)] border-r border-[var(--line)] bg-[rgb(var(--bg-rgb)/0.72)] backdrop-blur-xl flex flex-col transition-transform duration-500',
           calm && focusMode ? '-translate-x-full' : open ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
         )}
         style={{ transitionTimingFunction: 'cubic-bezier(0.16,1,0.3,1)' }}
       >
         <div className="px-5 pt-6 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 grid place-items-center rounded-lg border border-[rgba(77,163,255,0.45)] bg-[rgba(77,163,255,0.08)] text-system text-glow font-jp text-lg">
+            <div className="w-9 h-9 grid place-items-center rounded-lg border border-[rgb(var(--accent-rgb)/0.45)] bg-[rgb(var(--accent-rgb)/0.08)] text-system text-glow font-jp text-lg">
               影
             </div>
             <div>
@@ -105,7 +120,7 @@ export default function Shell() {
               className={({ isActive }) =>
                 cx(
                   'group flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] transition-all',
-                  isActive ? 'bg-[rgba(77,163,255,0.1)] text-bone' : 'text-bone-dim hover:text-bone hover:bg-[rgba(223,231,224,0.04)]',
+                  isActive ? 'bg-[rgb(var(--accent-rgb)/0.1)] text-bone' : 'text-bone-dim hover:text-bone hover:bg-[rgb(var(--fg-rgb)/0.04)]',
                 )
               }
             >
@@ -132,7 +147,7 @@ export default function Shell() {
       {open && <div className="fixed inset-0 z-30 bg-black/50 md:hidden" onClick={() => setOpen(false)} />}
 
       {/* Top bar for mobile */}
-      <header className={cx('md:hidden fixed top-0 inset-x-0 z-30 h-14 flex items-center justify-between px-4 border-b border-[var(--line)] bg-[rgba(5,7,10,0.8)] backdrop-blur-xl', calm && focusMode && 'hidden')}>
+      <header className={cx('md:hidden fixed top-0 inset-x-0 z-30 h-14 flex items-center justify-between px-4 border-b border-[var(--line)] bg-[rgb(var(--bg-rgb)/0.8)] backdrop-blur-xl', calm && focusMode && 'hidden')}>
         <div className="flex items-center gap-2">
           <span className="font-jp text-system">影</span>
           <span className="display text-lg">The System</span>
@@ -161,5 +176,6 @@ export default function Shell() {
 
       <SystemMessages />
     </div>
+    </MotionConfig>
   )
 }

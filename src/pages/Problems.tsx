@@ -45,8 +45,8 @@ export default function Problems() {
     <div>
       <SectionTitle eyebrow="Problem tracker" kanji="題" title="Every monster you have faced." />
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-        <Panel className="p-4"><Stat label="Solved" value={solved} sub={`of ${problems.length}`} tone="#5fd4a2" /></Panel>
-        <Panel className="p-4"><Stat label="Due for review" value={due.size} sub="spaced repetition" tone="#4da3ff" /></Panel>
+        <Panel className="p-4"><Stat label="Solved" value={solved} sub={`of ${problems.length}`} tone="var(--good)" /></Panel>
+        <Panel className="p-4"><Stat label="Due for review" value={due.size} sub="spaced repetition" tone="var(--accent)" /></Panel>
         <Panel className="p-4"><Stat label="Struggled" value={struggled} sub="come back soon" tone="#ff5a3c" /></Panel>
         <Panel className="p-4"><Stat label="Easy · Medium" value={`${byDiff('easy').done} · ${byDiff('medium').done}`} sub={`of ${byDiff('easy').total} · ${byDiff('medium').total}`} /></Panel>
         <Panel className="p-4"><Stat label="Hard" value={byDiff('hard').done} sub={`of ${byDiff('hard').total}`} tone="#c9a24a" /></Panel>

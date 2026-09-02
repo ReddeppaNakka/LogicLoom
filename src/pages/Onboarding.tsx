@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Background from '@/components/Background'
+import AppBackground from '@/components/AppBackground'
 import { useApp } from '@/store/useApp'
 import { todayKey, WEEKDAY_SHORT } from '@/lib/dates'
 import type { Lang } from '@/content/types'
@@ -25,8 +25,7 @@ export default function Onboarding() {
 
   return (
     <div className="grain min-h-screen relative overflow-hidden">
-      <div className="aurora" />
-      <Background />
+      <AppBackground id="motes" motion="full" />
       <div className="relative z-10 min-h-screen grid place-items-center px-5 py-10">
         <AnimatePresence mode="wait">
           {step === 0 && (

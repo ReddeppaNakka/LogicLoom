@@ -89,9 +89,9 @@ export default function Dashboard() {
             <div className="h-[230px] -mx-2 mt-1">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart data={stats.radar} outerRadius="72%">
-                  <PolarGrid stroke="rgba(223,231,224,0.12)" />
-                  <PolarAngleAxis dataKey="name" tick={{ fill: '#78837c', fontSize: 10.5 }} />
-                  <Radar dataKey="value" stroke="#4da3ff" fill="#4da3ff" fillOpacity={0.22} strokeWidth={1.5} isAnimationActive />
+                  <PolarGrid stroke="rgb(var(--fg-rgb)/0.12)" />
+                  <PolarAngleAxis dataKey="name" tick={{ fill: 'var(--fg-muted)', fontSize: 10.5 }} />
+                  <Radar dataKey="value" stroke="var(--accent)" fill="var(--accent)" fillOpacity={0.22} strokeWidth={1.5} isAnimationActive />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
@@ -211,7 +211,7 @@ export default function Dashboard() {
                 const eta = plan.gateEta[g.id]
                 return (
                   <div key={g.id} className="flex items-center gap-3 text-[12.5px]">
-                    <span className={cx('w-1.5 h-1.5 rounded-full shrink-0', cleared ? 'bg-jade' : g.id === curGate?.id ? 'bg-system glow-pulse' : 'bg-[rgba(223,231,224,0.2)]')} />
+                    <span className={cx('w-1.5 h-1.5 rounded-full shrink-0', cleared ? 'bg-jade' : g.id === curGate?.id ? 'bg-system glow-pulse' : 'bg-[rgb(var(--fg-rgb)/0.2)]')} />
                     <span className={cx('flex-1 truncate', cleared ? 'text-muted line-through' : 'text-bone-dim')}>{g.name}</span>
                     <span className="text-muted mono text-[11px]">{cleared ? 'cleared' : eta ? prettyDate(eta) : '—'}</span>
                   </div>

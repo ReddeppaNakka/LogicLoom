@@ -256,7 +256,7 @@ export function ProblemRow({ p, showConcept }: { p: Problem & { conceptIds?: str
   const dueToday = attempt?.nextReviewAt && attempt.nextReviewAt <= todayKey() && attempt.reviewStage < 4
 
   return (
-    <Panel id={`p-${p.id}`} className={cx('p-4', solved && 'border-[rgba(95,212,162,0.3)]', failed && 'border-[rgba(255,90,60,0.35)]')}>
+    <Panel id={`p-${p.id}`} className={cx('p-4', solved && 'border-[rgb(var(--good-rgb)/0.3)]', failed && 'border-[rgb(var(--warn-rgb)/0.35)]')}>
       <div className="flex items-start gap-3">
         <motion.div
           key={solved ? 'solved' : failed ? 'failed' : 'new'}
@@ -265,7 +265,7 @@ export function ProblemRow({ p, showConcept }: { p: Problem & { conceptIds?: str
           transition={{ type: 'spring', stiffness: 320, damping: 18 }}
           className={cx(
             'w-8 h-8 rounded-lg grid place-items-center border shrink-0 mt-0.5',
-            solved ? 'border-[rgba(95,212,162,0.4)] text-jade solved-ring' : failed ? 'border-[rgba(255,90,60,0.4)] text-ember' : 'border-[var(--line)] text-muted',
+            solved ? 'border-[rgb(var(--good-rgb)/0.4)] text-jade solved-ring' : failed ? 'border-[rgb(var(--warn-rgb)/0.4)] text-ember' : 'border-[var(--line)] text-muted',
           )}
         >
           {solved ? <Check size={14} /> : failed ? <X size={14} /> : <span className="mono text-[10px]">?</span>}
@@ -295,7 +295,7 @@ export function ProblemRow({ p, showConcept }: { p: Problem & { conceptIds?: str
             {attempt?.nextReviewAt && attempt.reviewStage < 4 && <span>· next review {prettyDate(attempt.nextReviewAt)}</span>}
           </div>
           {hint && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-2 text-[13px] text-bone-dim border-l-2 border-[rgba(77,163,255,0.5)] pl-3">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-2 text-[13px] text-bone-dim border-l-2 border-[rgb(var(--accent-rgb)/0.5)] pl-3">
               {p.hint}
             </motion.div>
           )}

@@ -100,8 +100,8 @@ export default function Trainer() {
                         onClick={() => answer(idx)}
                         className={cx(
                           'btn justify-start mono text-[13px]',
-                          picked !== null && isAns && '!border-[rgba(95,212,162,0.6)] !bg-[rgba(95,212,162,0.12)] text-jade',
-                          picked !== null && isPick && !isAns && '!border-[rgba(255,90,60,0.6)] !bg-[rgba(255,90,60,0.12)] text-ember',
+                          picked !== null && isAns && '!border-[rgb(var(--good-rgb)/0.6)] !bg-[rgb(var(--good-rgb)/0.12)] text-jade',
+                          picked !== null && isPick && !isAns && '!border-[rgb(var(--warn-rgb)/0.6)] !bg-[rgb(var(--warn-rgb)/0.12)] text-ember',
                         )}
                       >
                         {o}

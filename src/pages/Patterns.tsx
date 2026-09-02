@@ -22,7 +22,7 @@ export default function Patterns() {
         kanji="型"
         title="Which weapon for which monster."
         right={
-          <div className="flex gap-1 p-1 rounded-xl border border-[var(--line)] bg-[rgba(5,7,10,0.5)]">
+          <div className="flex gap-1 p-1 rounded-xl border border-[var(--line)] bg-[rgb(var(--bg-rgb)/0.5)]">
             <button className={cx('btn btn-sm border-0', tab === 'library' && 'btn-system')} onClick={() => setTab('library')}>
               Library
             </button>
@@ -46,7 +46,7 @@ export default function Patterns() {
             {filtered.map((p, i) => (
               <motion.div key={p.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: Math.min(i, 12) * 0.03, ease: [0.16, 1, 0.3, 1] }}>
                 <Link to={`/patterns/${p.id}`} className="block group h-full">
-                  <Panel className="p-5 h-full transition-all group-hover:border-[rgba(77,163,255,0.45)] group-hover:-translate-y-0.5">
+                  <Panel className="p-5 h-full transition-all group-hover:border-[rgb(var(--accent-rgb)/0.45)] group-hover:-translate-y-0.5">
                     <div className="flex items-center justify-between">
                       <Eyebrow>{p.relatedGateIds.map((g) => getGate(g)?.name.split(' ')[0]).filter(Boolean).slice(0, 2).join(' · ')}</Eyebrow>
                       <span className="mono text-[10.5px] text-muted">{p.time}</span>

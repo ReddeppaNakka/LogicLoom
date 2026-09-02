@@ -54,7 +54,7 @@ export default function QuestCard({ quest, compact }: { quest: Quest; compact?: 
         'panel px-4 py-3.5 transition-all',
         quest.kind === 'boss' && !done && 'panel-danger',
         done && 'opacity-55',
-        missed && 'border-[rgba(255,90,60,0.4)]',
+        missed && 'border-[rgb(var(--warn-rgb)/0.4)]',
         moved && 'opacity-40',
       )}
     >
@@ -62,7 +62,7 @@ export default function QuestCard({ quest, compact }: { quest: Quest; compact?: 
         <div
           className={cx(
             'w-9 h-9 rounded-lg grid place-items-center shrink-0 border',
-            done ? 'border-[rgba(95,212,162,0.4)] text-jade bg-[rgba(95,212,162,0.08)]' : quest.kind === 'boss' ? 'border-[rgba(224,35,28,0.5)] text-ember bg-[rgba(224,35,28,0.08)]' : 'border-[rgba(77,163,255,0.35)] text-system bg-[rgba(77,163,255,0.08)]',
+            done ? 'border-[rgb(var(--good-rgb)/0.4)] text-jade bg-[rgb(var(--good-rgb)/0.08)]' : quest.kind === 'boss' ? 'border-[rgb(var(--danger-rgb)/0.5)] text-ember bg-[rgb(var(--danger-rgb)/0.08)]' : 'border-[rgb(var(--accent-rgb)/0.35)] text-system bg-[rgb(var(--accent-rgb)/0.08)]',
           )}
         >
           {done ? <Check size={16} /> : <Icon size={16} />}
@@ -76,7 +76,7 @@ export default function QuestCard({ quest, compact }: { quest: Quest; compact?: 
             {moved && <span className="chip">moved to {prettyDate(quest.rescheduledTo!)}</span>}
             {quest.rescheduledFrom && !moved && <span className="chip">from {prettyDate(quest.rescheduledFrom)}</span>}
           </div>
-          <div className={cx('text-[14.5px] font-medium mt-0.5', done && 'line-through decoration-[rgba(223,231,224,0.4)]')}>
+          <div className={cx('text-[14.5px] font-medium mt-0.5', done && 'line-through decoration-[rgb(var(--fg-rgb)/0.4)]')}>
             {href ? (
               <Link to={href} className="hover:text-system transition-colors">
                 {quest.title}
