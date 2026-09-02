@@ -1,0 +1,67 @@
+/* Aurora: slow drifting colour blobs. */
+.bg-aurora {
+  inset: -20%; filter: blur(80px); opacity: 0.55;
+  background:
+    radial-gradient(40% 35% at 18% 22%, rgb(var(--accent-rgb) / 0.18), transparent 70%),
+    radial-gradient(35% 30% at 82% 15%, color-mix(in srgb, var(--violet) 12%, transparent), transparent 70%),
+    radial-gradient(45% 35% at 60% 90%, color-mix(in srgb, var(--danger) 9%, transparent), transparent 70%);
+  animation: aurora-drift 26s ease-in-out infinite alternate;
+}
+:root[data-theme="paper"] .bg-aurora,
+:root[data-theme="daylight"] .bg-aurora { opacity: 0.85; }
+
+/* Static soft glow with a vignette: the calm default for reading. */
+.bg-glow { background: radial-gradient(90% 55% at 50% -8%, rgb(var(--accent-rgb) / 0.1), transparent 62%); }
+.bg-glow::after {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(120% 90% at 50% 40%, transparent 40%, rgb(0 0 0 / 0.55) 100%);
+}
+:root[data-theme="paper"] .bg-glow::after,
+:root[data-theme="daylight"] .bg-glow::after { background: radial-gradient(120% 90% at 50% 40%, transparent 45%, rgb(var(--fg-rgb) / 0.07) 100%); }
+
+/* Static starfield: the look of the particle field with none of the motion. */
+.bg-stars {
+  background-image:
+    radial-gradient(1.4px 1.4px at 12% 18%, rgb(var(--accent-rgb) / 0.55), transparent 60%),
+    radial-gradient(1.2px 1.2px at 62% 8%, rgb(var(--fg-rgb) / 0.35), transparent 60%),
+    radial-gradient(1.6px 1.6px at 84% 32%, rgb(var(--accent-rgb) / 0.45), transparent 60%),
+    radial-gradient(1.1px 1.1px at 28% 62%, rgb(var(--fg-rgb) / 0.3), transparent 60%),
+    radial-gradient(1.5px 1.5px at 72% 74%, rgb(var(--accent-rgb) / 0.4), transparent 60%),
+    radial-gradient(1.2px 1.2px at 42% 88%, rgb(var(--fg-rgb) / 0.28), transparent 60%),
+    radial-gradient(1.3px 1.3px at 92% 58%, rgb(var(--fg-rgb) / 0.24), transparent 60%),
+    radial-gradient(1.1px 1.1px at 6% 82%, rgb(var(--accent-rgb) / 0.35), transparent 60%),
+    radial-gradient(70% 50% at 50% 0%, rgb(var(--accent-rgb) / 0.08), transparent 70%);
+  background-size: 340px 320px, 420px 380px, 500px 460px, 380px 340px, 460px 420px, 360px 400px, 520px 480px, 400px 360px, 100% 100%;
+}
+
+/* Blueprint grid: quiet structure, no movement. */
+.bg-grid {
+  background-image:
+    linear-gradient(rgb(var(--fg-rgb) / 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--fg-rgb) / 0.045) 1px, transparent 1px),
+    radial-gradient(80% 55% at 50% 0%, rgb(var(--accent-rgb) / 0.1), transparent 70%);
+  background-size: 44px 44px, 44px 44px, 100% 100%;
+  mask-image: radial-gradient(120% 100% at 50% 0%, #000 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(120% 100% at 50% 0%, #000 40%, transparent 100%);
+}
+
+/* Two large gradient washes that breathe very slowly. */
+.bg-nebula {
+  inset: -30%; filter: blur(100px); opacity: 0.5;
+  background:
+    radial-gradient(50% 45% at 25% 30%, rgb(var(--accent-rgb) / 0.22), transparent 70%),
+    radial-gradient(45% 40% at 78% 68%, color-mix(in srgb, var(--violet) 18%, transparent), transparent 70%);
+  animation: nebula-breathe 34s ease-in-out infinite alternate;
+}
+
+/* Vertical light shafts, still. */
+.bg-shafts {
+  background:
+    linear-gradient(102deg, transparent 18%, rgb(var(--accent-rgb) / 0.07) 24%, transparent 30%),
+    linear-gradient(98deg, transparent 48%, rgb(var(--fg-rgb) / 0.04) 54%, transparent 60%),
+    linear-gradient(105deg, transparent 70%, rgb(var(--accent-rgb) / 0.06) 76%, transparent 82%),
+    radial-gradient(90% 60% at 50% -10%, rgb(var(--accent-rgb) / 0.09), transparent 70%);
+}
+
+/* Flat: nothing at all. */
+.bg-plain { background: transparent; }

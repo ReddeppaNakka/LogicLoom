@@ -202,50 +202,68 @@ export default function Appearance() {
 }
 
 function BackgroundGrid({ value, onPick, warnAnimated }: { value: BackgroundId; onPick: (id: BackgroundId) => void; warnAnimated?: boolean }) {
+  const groups = [
+    { label: 'Still', note: 'Nothing moves.', items: BACKGROUNDS.filter((b) => !b.animated) },
+    { label: 'Moving', note: 'These animate continuously.', items: BACKGROUNDS.filter((b) => b.animated) },
+  ]
   return (
-    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-      {BACKGROUNDS.map((b) => {
-        const active = value === b.id
-        return (
-          <button key={b.id} onClick={() => onPick(b.id)} className="text-left group">
-            <Panel variant={active ? 'system' : undefined} corner={active} className="p-0 h-full overflow-hidden transition-all group-hover:border-[rgb(var(--accent-rgb)/0.45)]">
-              <div className="relative h-[92px] overflow-hidden border-b border-[var(--line)] bg-ink">
-                <BackgroundThumb id={b.id} />
-                {active && (
-                  <motion.div layoutId="bg-check" className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[rgb(var(--accent-rgb)/0.9)] grid place-items-center">
-                    <Check size={12} className="text-ink" />
-                  </motion.div>
-                )}
-              </div>
-              <div className="p-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-[13.5px] font-medium">{b.name}</span>
-                  {b.animated && <span className="chip !py-0 !px-1.5 !text-[10px]">moves</span>}
-                </div>
-                <p className="text-[11.5px] text-muted mt-1 leading-snug">{b.note}</p>
-                {warnAnimated && b.animated && <p className="text-[11px] text-ember mt-1.5">Not recommended while reading.</p>}
-              </div>
-            </Panel>
-          </button>
-        )
-      })}
+    <div className="space-y-5">
+      {groups.map((g) => (
+        <div key={g.label}>
+          <div className="flex items-baseline gap-2 mb-2.5">
+            <Eyebrow>{g.label}</Eyebrow>
+            <span className="text-[11.5px] text-muted">{g.note}</span>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            {g.items.map((b) => {
+              const active = value === b.id
+              const discourage = warnAnimated && b.animated
+              return (
+                <button key={b.id} onClick={() => onPick(b.id)} className="text-left group">
+                  <Panel
+                    variant={active ? 'system' : undefined}
+                    corner={active}
+                    className="p-0 h-full overflow-hidden transition-all group-hover:border-[rgb(var(--accent-rgb)/0.45)] group-hover:-translate-y-0.5"
+                  >
+                    <div className="relative h-[86px] overflow-hidden border-b border-[var(--line)]" style={{ background: 'var(--bg)' }}>
+                      <BackgroundThumb id={b.id} />
+                      {active && (
+                        <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[rgb(var(--accent-rgb)/0.95)] grid place-items-center">
+                          <Check size={12} style={{ color: 'var(--bg)' }} />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-2.5">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[13px] font-medium">{b.name}</span>
+                        {discourage && <span className="text-[10px] text-ember">avoid here</span>}
+                      </div>
+                      <p className="text-[11px] text-muted mt-0.5 leading-snug">{b.note}</p>
+                    </div>
+                  </Panel>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
 
-/** A small still rendering of each background so the choice is visible before it is made. */
+/**
+ * A small rendering of each background. The thumb class raises --tex-boost and
+ * shrinks --tex-scale, so a texture that is nearly invisible at full size reads
+ * clearly in an 86 pixel card.
+ */
 function BackgroundThumb({ id }: { id: BackgroundId }) {
   const def = getBackground(id)
   if (id === 'motes') {
-    return (
-      <div className="absolute inset-0 bg-stars" style={{ backgroundSize: '120px 110px, 140px 130px, 160px 150px, 130px 120px, 150px 140px, 120px 135px, 170px 160px, 135px 125px, 100% 100%' }}>
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(60% 50% at 50% 100%, rgb(var(--accent-rgb) / 0.14), transparent 70%)' }} />
-      </div>
-    )
+    // The canvas cannot be miniaturised cheaply, so show its frozen equivalent.
+    return <div className="bg-thumb bg-stars" />
   }
   if (!def.className) return null
-  // The layer classes use fixed positioning; the wrapper below re-scopes them.
-  return <div className={cx('absolute inset-0', def.className)} style={{ position: 'absolute', inset: 0, filter: id === 'aurora' || id === 'nebula' ? 'blur(24px)' : undefined, animation: 'none' }} />
+  return <div className={cx('bg-thumb', def.className)} />
 }
 
 function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {

@@ -8,7 +8,24 @@
  */
 
 export type ThemeId = 'shadow' | 'crimson' | 'jade' | 'amethyst' | 'abyss' | 'ember' | 'slate' | 'paper' | 'daylight'
-export type BackgroundId = 'motes' | 'aurora' | 'nebula' | 'stars' | 'grid' | 'shafts' | 'glow' | 'plain'
+export type BackgroundId =
+  | 'motes'
+  | 'aurora'
+  | 'nebula'
+  | 'rain'
+  | 'pulse'
+  | 'stars'
+  | 'dots'
+  | 'grid'
+  | 'hex'
+  | 'topo'
+  | 'crosshatch'
+  | 'scanlines'
+  | 'shafts'
+  | 'ridges'
+  | 'sigil'
+  | 'glow'
+  | 'plain'
 export type MotionLevel = 'full' | 'calm' | 'still'
 export type ReadingSize = 'compact' | 'comfortable' | 'large'
 export type ReadingWidth = 'narrow' | 'medium' | 'wide'
@@ -45,13 +62,24 @@ export interface BackgroundDef {
 }
 
 export const BACKGROUNDS: BackgroundDef[] = [
-  { id: 'motes', name: 'Drifting motes', note: 'Floating particles that follow your cursor. The liveliest option.', animated: true, className: null },
-  { id: 'aurora', name: 'Aurora', note: 'Soft colour blobs that drift very slowly.', animated: true, className: 'bg-aurora' },
-  { id: 'nebula', name: 'Nebula', note: 'Two large washes of colour that breathe.', animated: true, className: 'bg-nebula' },
-  { id: 'stars', name: 'Still stars', note: 'The look of the particle field, frozen in place.', animated: false, className: 'bg-stars' },
-  { id: 'grid', name: 'Blueprint grid', note: 'A faint technical grid that fades toward the bottom.', animated: false, className: 'bg-grid' },
-  { id: 'shafts', name: 'Light shafts', note: 'Angled beams of light. Still, with a sense of depth.', animated: false, className: 'bg-shafts' },
-  { id: 'glow', name: 'Single glow', note: 'One soft light above and a vignette. The calmest choice.', animated: false, className: 'bg-glow' },
+  // Moving
+  { id: 'motes', name: 'Drifting motes', note: 'Floating particles that follow your cursor.', animated: true, className: null },
+  { id: 'aurora', name: 'Aurora', note: 'Four colour blobs drifting across each other.', animated: true, className: 'bg-aurora' },
+  { id: 'nebula', name: 'Nebula', note: 'Two deep washes of colour that breathe.', animated: true, className: 'bg-nebula' },
+  { id: 'rain', name: 'Light rain', note: 'Thin streaks falling at an angle.', animated: true, className: 'bg-rain' },
+  { id: 'pulse', name: 'Gate pulse', note: 'A ring expanding outward, like a gate opening.', animated: true, className: 'bg-pulse' },
+  // Still
+  { id: 'stars', name: 'Starfield', note: 'Scattered points of light of several sizes.', animated: false, className: 'bg-stars' },
+  { id: 'dots', name: 'Dot matrix', note: 'An even field of small dots.', animated: false, className: 'bg-dots' },
+  { id: 'grid', name: 'Blueprint grid', note: 'Fine squares with a heavier rule every fifth line.', animated: false, className: 'bg-grid' },
+  { id: 'hex', name: 'Hex mesh', note: 'A honeycomb lattice. The most system-like.', animated: false, className: 'bg-hex' },
+  { id: 'topo', name: 'Contour lines', note: 'Concentric rings like a topographic map.', animated: false, className: 'bg-topo' },
+  { id: 'crosshatch', name: 'Crosshatch', note: 'A woven paper texture at 45 degrees.', animated: false, className: 'bg-crosshatch' },
+  { id: 'scanlines', name: 'Scanlines', note: 'Fine horizontal rules, like an old display.', animated: false, className: 'bg-scanlines' },
+  { id: 'shafts', name: 'Light shafts', note: 'Angled beams cutting across the page.', animated: false, className: 'bg-shafts' },
+  { id: 'ridges', name: 'Mountain ridges', note: 'Layered silhouettes along the bottom edge.', animated: false, className: 'bg-ridges' },
+  { id: 'sigil', name: 'Summoning circle', note: 'A large faint sigil behind the content.', animated: false, className: 'bg-sigil' },
+  { id: 'glow', name: 'Single glow', note: 'One soft light above and a vignette. The calmest.', animated: false, className: 'bg-glow' },
   { id: 'plain', name: 'Nothing', note: 'Flat colour. No texture, no light, no distraction.', animated: false, className: 'bg-plain' },
 ]
 

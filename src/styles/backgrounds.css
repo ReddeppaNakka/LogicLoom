@@ -1,0 +1,221 @@
+/* ---------------------------------------------------------------------------
+   Background styles.
+
+   Every pattern scales its opacity by --tex-boost and its tile size by
+   --tex-scale. The full-page layer leaves both at 1 so the texture stays
+   almost subliminal; the preview thumbnails raise the boost and shrink the
+   tiles so the difference between options is obvious at 92 pixels tall.
+   --------------------------------------------------------------------------- */
+
+.bg-layer { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.bg-thumb { position: absolute; inset: 0; pointer-events: none; overflow: hidden; --tex-boost: 4; --tex-scale: 0.34; }
+.bg-thumb, .bg-thumb::before, .bg-thumb::after { animation: none !important; }
+
+/* Blur and ring sizes are set for a full viewport; scale them down for a card. */
+.bg-thumb.bg-aurora { inset: -12%; filter: blur(16px); opacity: 0.95; }
+.bg-thumb.bg-nebula { inset: -14%; filter: blur(20px); opacity: 0.95; }
+/* Percentage margins resolve against width on both axes, so the card previews
+   set explicit pixel boxes instead. */
+.bg-thumb.bg-pulse::before { top: 50%; width: 60px; height: 60px; margin: -30px 0 0 -30px; opacity: 1; }
+.bg-thumb.bg-pulse::after { top: 50%; width: 112px; height: 112px; margin: -56px 0 0 -56px; opacity: 0.5; }
+.bg-thumb.bg-sigil::before { top: 50%; width: 78px; height: 78px; margin: -39px 0 0 -39px; }
+.bg-thumb.bg-rain { mask-image: none; -webkit-mask-image: none; }
+
+/* ===== Moving ===== */
+
+/* Aurora: colour blobs drifting across each other. */
+.bg-aurora {
+  inset: -20%; filter: blur(70px); opacity: calc(0.6 * var(--tex-boost, 1));
+  background:
+    radial-gradient(38% 34% at 16% 24%, rgb(var(--accent-rgb) / 0.3), transparent 70%),
+    radial-gradient(34% 30% at 80% 14%, color-mix(in srgb, var(--violet) 26%, transparent), transparent 70%),
+    radial-gradient(42% 34% at 62% 88%, color-mix(in srgb, var(--good) 20%, transparent), transparent 70%),
+    radial-gradient(30% 26% at 38% 62%, color-mix(in srgb, var(--danger) 16%, transparent), transparent 70%);
+  animation: aurora-drift 26s ease-in-out infinite alternate;
+}
+
+/* Nebula: two deep washes that breathe. */
+.bg-nebula {
+  inset: -30%; filter: blur(90px); opacity: calc(0.55 * var(--tex-boost, 1));
+  background:
+    radial-gradient(48% 44% at 24% 30%, rgb(var(--accent-rgb) / 0.4), transparent 70%),
+    radial-gradient(44% 40% at 78% 70%, color-mix(in srgb, var(--violet) 34%, transparent), transparent 70%);
+  animation: nebula-breathe 34s ease-in-out infinite alternate;
+}
+
+/* Rain: thin streaks falling at a slight angle. */
+.bg-rain {
+  background-image: repeating-linear-gradient(
+    99deg,
+    transparent 0 22px,
+    rgb(var(--accent-rgb) / calc(0.16 * var(--tex-boost, 1))) 22px 23px,
+    transparent 23px 46px
+  );
+  background-size: auto calc(220px * var(--tex-scale, 1));
+  mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+  animation: rain-fall 2.6s linear infinite;
+}
+
+/* Pulse: a slow ring expanding from behind the content, like a gate opening. */
+.bg-pulse::before,
+.bg-pulse::after {
+  content: ""; position: absolute; left: 50%; top: 45%; width: 60vmax; height: 60vmax;
+  margin: -30vmax 0 0 -30vmax; border-radius: 50%;
+  border: 1px solid rgb(var(--accent-rgb) / calc(0.22 * var(--tex-boost, 1)));
+  background: radial-gradient(circle, rgb(var(--accent-rgb) / calc(0.06 * var(--tex-boost, 1))), transparent 65%);
+  animation: gate-pulse 7s ease-out infinite;
+}
+.bg-pulse::after { animation-delay: 3.5s; }
+
+/* ===== Still ===== */
+
+/* Single glow with a vignette: the calmest choice. */
+.bg-glow { background: radial-gradient(90% 55% at 50% -8%, rgb(var(--accent-rgb) / calc(0.12 * var(--tex-boost, 1))), transparent 62%); }
+.bg-glow::after {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(120% 90% at 50% 40%, transparent 40%, rgb(0 0 0 / 0.55) 100%);
+}
+:root[data-theme="paper"] .bg-glow::after,
+:root[data-theme="daylight"] .bg-glow::after { background: radial-gradient(120% 90% at 50% 40%, transparent 45%, rgb(var(--fg-rgb) / 0.07) 100%); }
+
+/* Starfield: scattered points of light of several sizes. */
+.bg-stars {
+  background-image:
+    radial-gradient(1.6px 1.6px at 12% 18%, rgb(var(--accent-rgb) / calc(0.7 * var(--tex-boost, 1))), transparent 60%),
+    radial-gradient(1.2px 1.2px at 62% 8%, rgb(var(--fg-rgb) / calc(0.45 * var(--tex-boost, 1))), transparent 60%),
+    radial-gradient(2px 2px at 84% 32%, rgb(var(--accent-rgb) / calc(0.55 * var(--tex-boost, 1))), transparent 60%),
+    radial-gradient(1.1px 1.1px at 28% 62%, rgb(var(--fg-rgb) / calc(0.4 * var(--tex-boost, 1))), transparent 60%),
+    radial-gradient(1.7px 1.7px at 72% 74%, rgb(var(--accent-rgb) / calc(0.5 * var(--tex-boost, 1))), transparent 60%),
+    radial-gradient(1.2px 1.2px at 42% 88%, rgb(var(--fg-rgb) / calc(0.36 * var(--tex-boost, 1))), transparent 60%),
+    radial-gradient(1.4px 1.4px at 92% 58%, rgb(var(--fg-rgb) / calc(0.32 * var(--tex-boost, 1))), transparent 60%),
+    radial-gradient(1.1px 1.1px at 6% 82%, rgb(var(--accent-rgb) / calc(0.45 * var(--tex-boost, 1))), transparent 60%),
+    radial-gradient(70% 50% at 50% 0%, rgb(var(--accent-rgb) / 0.08), transparent 70%);
+  background-size:
+    calc(340px * var(--tex-scale, 1)) calc(320px * var(--tex-scale, 1)),
+    calc(420px * var(--tex-scale, 1)) calc(380px * var(--tex-scale, 1)),
+    calc(500px * var(--tex-scale, 1)) calc(460px * var(--tex-scale, 1)),
+    calc(380px * var(--tex-scale, 1)) calc(340px * var(--tex-scale, 1)),
+    calc(460px * var(--tex-scale, 1)) calc(420px * var(--tex-scale, 1)),
+    calc(360px * var(--tex-scale, 1)) calc(400px * var(--tex-scale, 1)),
+    calc(520px * var(--tex-scale, 1)) calc(480px * var(--tex-scale, 1)),
+    calc(400px * var(--tex-scale, 1)) calc(360px * var(--tex-scale, 1)),
+    100% 100%;
+}
+
+/* Dot matrix: an even field of dots. */
+.bg-dots {
+  background-image: radial-gradient(circle, rgb(var(--fg-rgb) / calc(0.16 * var(--tex-boost, 1))) 1.1px, transparent 1.2px);
+  background-size: calc(24px * var(--tex-scale, 1)) calc(24px * var(--tex-scale, 1));
+  mask-image: radial-gradient(130% 110% at 50% 0%, #000 35%, transparent 100%);
+  -webkit-mask-image: radial-gradient(130% 110% at 50% 0%, #000 35%, transparent 100%);
+}
+
+/* Blueprint grid: fine squares with a heavier rule every fifth line. */
+.bg-grid {
+  background-image:
+    linear-gradient(rgb(var(--fg-rgb) / calc(0.05 * var(--tex-boost, 1))) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--fg-rgb) / calc(0.05 * var(--tex-boost, 1))) 1px, transparent 1px),
+    linear-gradient(rgb(var(--accent-rgb) / calc(0.1 * var(--tex-boost, 1))) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--accent-rgb) / calc(0.1 * var(--tex-boost, 1))) 1px, transparent 1px);
+  background-size:
+    calc(30px * var(--tex-scale, 1)) calc(30px * var(--tex-scale, 1)),
+    calc(30px * var(--tex-scale, 1)) calc(30px * var(--tex-scale, 1)),
+    calc(150px * var(--tex-scale, 1)) calc(150px * var(--tex-scale, 1)),
+    calc(150px * var(--tex-scale, 1)) calc(150px * var(--tex-scale, 1));
+  mask-image: radial-gradient(130% 105% at 50% 0%, #000 30%, transparent 100%);
+  -webkit-mask-image: radial-gradient(130% 105% at 50% 0%, #000 30%, transparent 100%);
+}
+
+/* Hex mesh: a honeycomb HUD lattice. Drawn as a mask so it takes the theme colour. */
+.bg-hex {
+  background-color: rgb(var(--accent-rgb) / calc(0.16 * var(--tex-boost, 1)));
+  --hex: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='96'%3E%3Cg fill='none' stroke='%23fff' stroke-width='2'%3E%3Cpath d='M28 1 L55 16.5 L55 47.5 L28 63 L1 47.5 L1 16.5 Z'/%3E%3Cpath d='M28 49 L28 63'/%3E%3C/g%3E%3C/svg%3E");
+  mask-image: var(--hex), radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 100%);
+  -webkit-mask-image: var(--hex), radial-gradient(120% 100% at 50% 0%, #000 30%, transparent 100%);
+  mask-size: calc(56px * var(--tex-scale, 1)) calc(96px * var(--tex-scale, 1)), 100% 100%;
+  -webkit-mask-size: calc(56px * var(--tex-scale, 1)) calc(96px * var(--tex-scale, 1)), 100% 100%;
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
+}
+
+/* Contour lines: concentric rings like a topographic map. */
+.bg-topo {
+  background-image:
+    repeating-radial-gradient(circle at 22% 28%, transparent 0 26px, rgb(var(--fg-rgb) / calc(0.07 * var(--tex-boost, 1))) 26px 27px),
+    repeating-radial-gradient(circle at 76% 66%, transparent 0 32px, rgb(var(--accent-rgb) / calc(0.09 * var(--tex-boost, 1))) 32px 33px);
+  background-size: calc(100% * var(--tex-scale, 1) * 3) calc(100% * var(--tex-scale, 1) * 3);
+  mask-image: radial-gradient(130% 110% at 50% 20%, #000 30%, transparent 100%);
+  -webkit-mask-image: radial-gradient(130% 110% at 50% 20%, #000 30%, transparent 100%);
+}
+
+/* Crosshatch: a woven paper texture. */
+.bg-crosshatch {
+  background-image:
+    repeating-linear-gradient(45deg, transparent 0 6px, rgb(var(--fg-rgb) / calc(0.055 * var(--tex-boost, 1))) 6px 7px),
+    repeating-linear-gradient(-45deg, transparent 0 6px, rgb(var(--fg-rgb) / calc(0.045 * var(--tex-boost, 1))) 6px 7px);
+  background-size: calc(28px * var(--tex-scale, 1)) calc(28px * var(--tex-scale, 1));
+}
+
+/* Scanlines: fine horizontal rules, like an old display. */
+.bg-scanlines {
+  background-image:
+    repeating-linear-gradient(180deg, rgb(var(--fg-rgb) / calc(0.07 * var(--tex-boost, 1))) 0 1px, transparent 1px 4px),
+    radial-gradient(90% 60% at 50% 0%, rgb(var(--accent-rgb) / calc(0.09 * var(--tex-boost, 1))), transparent 70%);
+  background-size: calc(100% ) calc(4px * max(var(--tex-scale, 1), 0.75)), 100% 100%;
+}
+
+/* Light shafts: angled beams cutting across the page. */
+.bg-shafts {
+  background:
+    linear-gradient(102deg, transparent 18%, rgb(var(--accent-rgb) / calc(0.09 * var(--tex-boost, 1))) 24%, transparent 30%),
+    linear-gradient(98deg, transparent 48%, rgb(var(--fg-rgb) / calc(0.05 * var(--tex-boost, 1))) 54%, transparent 60%),
+    linear-gradient(105deg, transparent 70%, rgb(var(--accent-rgb) / calc(0.08 * var(--tex-boost, 1))) 76%, transparent 82%),
+    radial-gradient(90% 60% at 50% -10%, rgb(var(--accent-rgb) / 0.09), transparent 70%);
+}
+
+/* Ridges: layered mountain silhouettes along the bottom. */
+.bg-ridges::before,
+.bg-ridges::after {
+  content: ""; position: absolute; left: -5%; right: -5%; bottom: 0; height: 46%;
+  background: rgb(var(--fg-rgb) / calc(0.05 * var(--tex-boost, 1)));
+  clip-path: polygon(0 62%, 12% 40%, 24% 58%, 38% 26%, 52% 52%, 66% 30%, 80% 56%, 92% 38%, 100% 54%, 100% 100%, 0 100%);
+}
+.bg-ridges::after {
+  height: 30%;
+  background: rgb(var(--accent-rgb) / calc(0.07 * var(--tex-boost, 1)));
+  clip-path: polygon(0 54%, 10% 70%, 22% 44%, 36% 64%, 50% 36%, 64% 62%, 78% 42%, 90% 66%, 100% 48%, 100% 100%, 0 100%);
+}
+
+/* Sigil: a faint summoning circle behind the content. */
+.bg-sigil::before {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 72vmin; height: 72vmin;
+  margin: -36vmin 0 0 -36vmin;
+  background-color: rgb(var(--accent-rgb) / calc(0.22 * var(--tex-boost, 1)));
+  --sigil: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg fill='none' stroke='%23fff' stroke-width='0.8'%3E%3Ccircle cx='100' cy='100' r='96'/%3E%3Ccircle cx='100' cy='100' r='82'/%3E%3Ccircle cx='100' cy='100' r='58'/%3E%3Ccircle cx='100' cy='100' r='40'/%3E%3Cpath d='M100 4 L182 148 L18 148 Z'/%3E%3Cpath d='M100 196 L18 52 L182 52 Z'/%3E%3C/g%3E%3Cg stroke='%23fff' stroke-width='1.6'%3E%3Cpath d='M100 4 v10 M196 100 h-10 M100 196 v-10 M4 100 h10 M168 32 l-7 7 M168 168 l-7-7 M32 168 l7-7 M32 32 l7 7'/%3E%3C/g%3E%3C/svg%3E");
+  mask-image: var(--sigil);
+  -webkit-mask-image: var(--sigil);
+  mask-size: contain; -webkit-mask-size: contain;
+  mask-repeat: no-repeat; -webkit-mask-repeat: no-repeat;
+}
+
+/* Flat: nothing at all. */
+.bg-plain { background: transparent; }
+
+@keyframes aurora-drift {
+  0% { transform: translate3d(0,0,0) scale(1); }
+  100% { transform: translate3d(3%, -2%, 0) scale(1.06); }
+}
+@keyframes nebula-breathe {
+  0% { transform: translate3d(0,0,0) scale(1); opacity: 0.42; }
+  100% { transform: translate3d(-2%, 3%, 0) scale(1.1); opacity: 0.6; }
+}
+@keyframes rain-fall {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 calc(220px * var(--tex-scale, 1)); }
+}
+@keyframes gate-pulse {
+  0% { transform: scale(0.25); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: scale(1.15); opacity: 0; }
+}

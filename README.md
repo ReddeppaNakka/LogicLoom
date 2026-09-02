@@ -6,10 +6,14 @@ Everything runs in the browser. Progress is saved in `localStorage`; export a ba
 
 ## Appearance
 
-The Appearance page controls how the app looks. Nine colour themes (seven dark, two light), eight background
-styles, and a separate background choice for reading and practice pages so a moving background can be kept for
-browsing and switched off where concentration matters. Motion can be set to full, calm or still, and reading
-text size, line width, film grain and the sheet behind long passages are all adjustable.
+The Appearance page controls how the app looks. Nine colour themes (seven dark, two light), seventeen background
+styles split into still and moving, and a separate background choice for reading and practice pages so a moving
+background can be kept for browsing and switched off where concentration matters. Motion can be set to full, calm
+or still, and reading text size, line width, film grain and the sheet behind long passages are all adjustable.
+
+Backgrounds live in `src/styles/backgrounds.css`. Each pattern scales its opacity by `--tex-boost` and its tile
+size by `--tex-scale`; the full-page layer leaves both at 1 while the preview cards raise the boost, so a texture
+that is nearly invisible behind text still reads clearly in the picker.
 
 Themes are pure CSS: each id in `src/lib/appearance.ts` matches a `:root[data-theme="..."]` block in
 `src/styles/global.css`. To add one, copy a block, change the tokens, and add an entry to `THEMES`.
