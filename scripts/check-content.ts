@@ -45,6 +45,37 @@ for (const c of concepts) {
   }
   const words = c.explanation.split(/\s+/).length
   if (words < 200) warns.push(`concept ${c.id} explanation is short (${words} words)`)
+
+  // --- the thirteen teaching sections ---
+  const need = (field: string, ok: boolean, detail = '') => {
+    if (!ok) errors.push(`concept ${c.id} missing ${field}${detail ? ` (${detail})` : ''}`)
+  }
+  need('definition', Boolean(c.definition && c.definition.trim().length > 20))
+  need('coreIdea', Boolean(c.coreIdea && c.coreIdea.trim().length > 40))
+  need('visual', (c.visual?.length ?? 0) >= 3, 'need 3+ frames')
+  need('pseudocode', Boolean(c.pseudocode && c.pseudocode.split('\n').length >= 5))
+  need('complexity', (c.complexity?.length ?? 0) >= 2)
+  need('dryRun', (c.dryRun?.steps.length ?? 0) >= 4, 'need 4+ steps')
+  need('mistakes', (c.mistakes?.length ?? 0) >= 3)
+  need('whenToUse', (c.whenToUse?.length ?? 0) >= 3)
+  need('whenNotToUse', (c.whenNotToUse?.length ?? 0) >= 2)
+  need('relatedTopics', (c.relatedTopics?.length ?? 0) >= 2)
+  need('quiz', (c.quiz?.length ?? 0) >= 3)
+  need('sources', (c.sources?.length ?? 0) >= 1)
+
+  for (const f of c.visual ?? []) {
+    const longest = Math.max(...f.frame.split('\n').map((l) => l.length))
+    if (longest > 64) warns.push(`concept ${c.id} visual frame line is ${longest} chars, wraps on mobile`)
+  }
+  for (const q of c.quiz ?? []) {
+    if (q.options.length < 3) errors.push(`concept ${c.id} quiz question needs 3+ options`)
+    if (q.answerIndex < 0 || q.answerIndex >= q.options.length) errors.push(`concept ${c.id} quiz answerIndex out of range`)
+  }
+  for (const r of c.relatedTopics ?? []) {
+    const exists = r.kind === 'concept' ? conceptIds.has(r.id) : patternIds.has(r.id)
+    if (!exists) errors.push(`concept ${c.id} relatedTopics -> unknown ${r.kind} ${r.id}`)
+  }
+  for (const p of c.problems) if (!p.tier) errors.push(`problem ${p.id} in ${c.id} has no tier`)
 }
 // duplicate concept ids
 const seen = new Set<string>()
@@ -78,7 +109,11 @@ for (const q of complexityQuestions) {
   if (q.answerIndex < 0 || q.answerIndex > 3) errors.push(`quiz ${q.id} bad answerIndex`)
 }
 
-console.log(`gates ${gates.length} · concepts ${concepts.length} · patterns ${patterns.length} · problems ${problemIds.size} · quiz ${complexityQuestions.length} · tree nodes ${decisionTree.length}`)
+const withSections = concepts.filter((c) => c.definition && c.visual?.length && c.dryRun && c.quiz?.length).length
+const totalQuiz = concepts.reduce((s, c) => s + (c.quiz?.length ?? 0), 0)
+const totalFrames = concepts.reduce((s, c) => s + (c.visual?.length ?? 0), 0)
+console.log(`gates ${gates.length} · concepts ${concepts.length} · patterns ${patterns.length} · problems ${problemIds.size} · drill ${complexityQuestions.length} · tree nodes ${decisionTree.length}`)
+console.log(`fully sectioned concepts ${withSections}/${concepts.length} · visual frames ${totalFrames} · concept quiz questions ${totalQuiz}`)
 for (const w of warns) console.log('warn:', w)
 for (const e of errors) console.log('ERROR:', e)
 if (errors.length) process.exit(1)

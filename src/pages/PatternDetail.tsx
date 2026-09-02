@@ -6,6 +6,10 @@ import CodeTabs from '@/components/CodeTabs'
 import ReadingProgress from '@/components/ReadingProgress'
 import Reveal from '@/components/Reveal'
 import { Panel, Eyebrow, Kanji } from '@/components/ui'
+import type { Tier } from '@/content/types'
+
+const TIER_LABEL: Record<Tier, string> = { beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced' }
+const TIER_ORDER: Tier[] = ['beginner', 'intermediate', 'advanced']
 import { ProblemRow } from './ConceptPage'
 
 export default function PatternDetail() {
@@ -82,12 +86,26 @@ export default function PatternDetail() {
             <Eyebrow system>Problems using this pattern · {all.length}</Eyebrow>
             <Kanji>題</Kanji>
           </div>
-          <div className="space-y-3">
-            {all.map((pr, i) => (
-              <Reveal key={pr.id} delay={Math.min(i, 5) * 0.05}>
-                <ProblemRow p={pr} showConcept />
-              </Reveal>
-            ))}
+          <div className="space-y-6">
+            {TIER_ORDER.map((t) => {
+              const items = all.filter((pr) => (pr.tier ?? 'beginner') === t)
+              if (!items.length) return null
+              return (
+                <div key={t}>
+                  <div className="flex items-center gap-2 mb-2.5">
+                    <Eyebrow>{TIER_LABEL[t]}</Eyebrow>
+                    <span className="text-[11px] text-muted">{items.length} problems</span>
+                  </div>
+                  <div className="space-y-3">
+                    {items.map((pr, i) => (
+                      <Reveal key={pr.id} delay={Math.min(i, 5) * 0.05}>
+                        <ProblemRow p={pr} showConcept />
+                      </Reveal>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </section>
       )}

@@ -219,6 +219,224 @@ int climbTable(int n) {
       'Verify base cases by hand for the smallest inputs.',
     ],
     patternIds: ['recursion', 'dp-1d'],
+    definition:
+      'Dynamic programming is a way to solve a problem by splitting it into smaller sub-problems, solving each different sub-problem exactly once, and storing that answer so every later use is only a lookup. It applies when the sub-problems overlap and when the best answer to the whole is built from best answers to the parts.',
+    coreIdea:
+      'The plain recursion is slow not because recursion is slow, but because it answers the same question over and over. The value of ways(3) never changes, so it only ever needs to be worked out once. Climbing Stairs makes about 2^n calls while asking only n different questions, so writing each answer down cuts the cost from O(2^n) to O(n). Memoization does this from the top down, tabulation does the same work from the bottom up.',
+    visual: [
+      {
+        caption: 'Plain recursion for ways(5) fans out into a tree of calls.',
+        frame: [
+          'ways(5)',
+          ' +-- ways(4)',
+          ' |    +-- ways(3)',
+          ' |    |    +-- ways(2)',
+          ' |    |    +-- ways(1)',
+          ' |    +-- ways(2)',
+          ' +-- ways(3)',
+          '      +-- ways(2)',
+          '      +-- ways(1)',
+        ].join('\n'),
+      },
+      {
+        caption: 'The repeated subtrees, circled. Only 5 different questions exist.',
+        frame: [
+          'ways(5)',
+          ' +-- ways(4)',
+          ' |    +-- ( ways(3) )   <-- circled',
+          ' |    +-- ways(2)',
+          ' +-- ( ways(3) )        <-- the same subtree again',
+          '',
+          'call counts: ways(3) x2, ways(2) x3, ways(1) x2',
+          '9 calls for n = 5, and about 2^n for larger n',
+        ].join('\n'),
+      },
+      {
+        caption: 'The same computation as a table. State dp[i] = ways to stand on step i. Base: dp[1]=1, dp[2]=2.',
+        frame: [
+          'i       1    2    3    4    5',
+          'dp    [ 1 ][ 2 ][ . ][ . ][ . ]',
+          '        ^    ^',
+          '        base cases, no decision to make yet',
+        ].join('\n'),
+      },
+      {
+        caption: 'Fill dp[3]. Transition: dp[i] = dp[i-1] + dp[i-2].',
+        frame: [
+          'i       1    2    3    4    5',
+          'dp    [ 1 ][ 2 ][ 3 ][ . ][ . ]',
+          '        ^    ^    ^',
+          '        |    |    +- new cell dp[3]',
+          '        +----+------ sources dp[1] and dp[2]',
+          '',
+          'dp[3] = dp[2] + dp[1] = 2 + 1 = 3',
+        ].join('\n'),
+      },
+      {
+        caption: 'Fill dp[4] from the two cells on its left.',
+        frame: [
+          'i       1    2    3    4    5',
+          'dp    [ 1 ][ 2 ][ 3 ][ 5 ][ . ]',
+          '             ^    ^    ^',
+          '             |    |    +- new cell dp[4]',
+          '             +----+------ sources dp[2] and dp[3]',
+          '',
+          'dp[4] = dp[3] + dp[2] = 3 + 2 = 5',
+        ].join('\n'),
+      },
+      {
+        caption: 'Fill dp[5] and stop. Five additions replace nine recursive calls.',
+        frame: [
+          'i       1    2    3    4    5',
+          'dp    [ 1 ][ 2 ][ 3 ][ 5 ][ 8 ]',
+          '                  ^    ^    ^',
+          '                  +----+----+',
+          '',
+          'dp[5] = dp[4] + dp[3] = 5 + 3 = 8',
+          'answer = dp[5] = 8',
+        ].join('\n'),
+      },
+    ],
+    pseudocode: `// Climbing Stairs.
+// State:      dp[i] = number of ways to stand on step i.
+// Transition: dp[i] = dp[i - 1] + dp[i - 2].
+// Base case:  dp[1] = 1, dp[2] = 2.
+
+function topDown(i, memo):
+    if i <= 2:
+        return i                       // base case
+    if memo contains i:
+        return memo[i]                 // answered before, only a lookup
+    memo[i] = topDown(i - 1, memo) + topDown(i - 2, memo)
+    return memo[i]
+
+function bottomUp(n):
+    if n <= 2:
+        return n
+    create table dp with n + 1 cells
+    dp[1] = 1
+    dp[2] = 2
+    for i from 3 to n:
+        dp[i] = dp[i - 1] + dp[i - 2]
+    return dp[n]`,
+    complexity: [
+      { label: 'Plain recursion', time: 'O(2^n)', space: 'O(n)', note: 'every call branches twice and nothing is stored; space is the call stack' },
+      { label: 'Top-down with memo', time: 'O(n)', space: 'O(n)', note: 'n states with O(1) work each; memo plus call stack' },
+      { label: 'Bottom-up table', time: 'O(n)', space: 'O(n)', note: 'one loop, no recursion, so no stack limit' },
+      { label: 'Rolling variables', time: 'O(n)', space: 'O(1)', note: 'only the two previous cells are ever read' },
+    ],
+    dryRun: {
+      input: 'n = 5, steps of size 1 or 2 (Climbing Stairs)',
+      goal: 'Count the ways to reach step 5 with the rolling-variable version, where a holds ways(i-2) and b holds ways(i-1).',
+      steps: [
+        { state: 'n=5 a=1 b=2', action: 'Set the base cases: a = ways(1) = 1 and b = ways(2) = 2.' },
+        { state: 'i=3 a=1 b=2', action: 'ways(3) = a + b = 1 + 2 = 3; slide the pair so a=2 and b=3.' },
+        { state: 'i=4 a=2 b=3', action: 'ways(4) = 2 + 3 = 5; slide so a=3 and b=5.' },
+        { state: 'i=5 a=3 b=5', action: 'ways(5) = 3 + 5 = 8; slide so a=5 and b=8.' },
+        { state: 'loop finished a=5 b=8', action: 'The loop has passed n, so return b, which now holds ways(5).' },
+      ],
+      result: '8. It matches the table dp = [-, 1, 2, 3, 5, 8], and the 8 routes can be listed by hand: 11111, 1112, 1121, 1211, 2111, 122, 212, 221.',
+    },
+    mistakes: [
+      {
+        mistake: 'Writing def ways(n, memo={}) in Python.',
+        why: 'The default dictionary is created once and shared by every call, so answers from one input leak into the next and a later test quietly reuses stale values.',
+        fix: 'Pass a fresh dict from the caller, build the memo inside a wrapper function, or decorate with functools.lru_cache.',
+      },
+      {
+        mistake: 'Setting dp[2] = 1 for Climbing Stairs.',
+        why: 'There really are two ways to stand on step 2 (1+1 and 2). Every later cell is built from dp[2], so dp[3] onward is too small and the final answer is wrong.',
+        fix: 'Check the base cases by hand for n = 1, 2 and 3 before writing the loop.',
+      },
+      {
+        mistake: 'Jumping straight to a table without writing the recursion.',
+        why: 'The table is only a storage trick. If the transition is guessed, the cells hold something you cannot define, and the bug stays invisible until a large test fails.',
+        fix: 'Write the state, the transition and the base case in one sentence each, then translate them into a loop.',
+      },
+      {
+        mistake: 'Memoizing on part of the state, for example caching by index when the answer also depends on the remaining budget.',
+        why: 'Two genuinely different sub-problems collide on one key, so the second one is handed the first one answer.',
+        fix: 'The memo key must contain every variable the answer depends on, and nothing else.',
+      },
+      {
+        mistake: 'Using top-down recursion for n = 100000 in Python.',
+        why: 'The default recursion limit is about 1000, so a correct memoized solution still crashes with a RecursionError.',
+        fix: 'Convert it to a bottom-up loop, which uses no call stack at all.',
+      },
+    ],
+    whenToUse: [
+      'You already have a correct recursive solution and it times out because the same call repeats.',
+      'The question asks for a count of ways, a minimum cost, or a maximum value.',
+      'The answer for n is built from the answers for a few slightly smaller inputs.',
+      'The number of different states is small, say a few million, and each state costs O(1) to fill.',
+    ],
+    whenNotToUse: [
+      'Sub-problems never repeat, as in merge sort; plain divide and conquer is enough and a memo only wastes memory.',
+      'One greedy rule is provably safe, as in picking the earliest finishing meeting; greedy is O(n log n) and much shorter.',
+      'The state has to remember the exact set chosen so far and n is large; that is backtracking, and bitmask DP only survives up to about n = 20.',
+      'You need a shortest path in a graph with cycles; there is no safe order to fill the states, so use BFS or Dijkstra.',
+      'The state is an amount up to 10^9; the table will not fit in memory, so look for a maths or greedy argument.',
+    ],
+    relatedTopics: [
+      { id: 'recursion-basics', kind: 'concept', why: 'Every DP starts as a recursive relation, so you must be able to write and trust the recursion first.' },
+      { id: 'analyzing-loops-and-recursion', kind: 'concept', why: 'Counting states times work per state is exactly how you predict whether a DP will run in time.' },
+      { id: 'hash-map-basics', kind: 'concept', why: 'A memo is a hash map from state to answer, which is why each lookup costs O(1).' },
+      { id: 'dp-1d', kind: 'concept', why: 'The next step: the same notebook trick applied to sequences, where the state is a single index.' },
+    ],
+    quiz: [
+      {
+        question: 'Plain recursive climbStairs(n) makes roughly how many calls, and what does adding a memo change that to?',
+        options: [
+          'About n^2 calls, and a memo makes it O(n log n)',
+          'About 2^n calls, and a memo makes it O(n)',
+          'About n! calls, and a memo makes it O(n^2)',
+          'About n calls already, so the memo only saves space',
+        ],
+        answerIndex: 1,
+        explanation: 'The call tree branches twice at every level, so it grows like 2^n. There are only n different states, so caching them caps the work at n computations of O(1) each.',
+      },
+      {
+        question: 'What is the safest first step when a problem smells like DP?',
+        options: [
+          'Guess the shape of the table and start filling cells',
+          'Write the state, the transition and the base case, then add a memo',
+          'Sort the input first',
+          'Convert the problem into a graph and run BFS',
+        ],
+        answerIndex: 1,
+        explanation: 'The recursion is the design and the table is only storage. If you cannot say what dp[i] means in one sentence, the table will be wrong.',
+      },
+      {
+        question: 'You must find the fewest coins for amount 1000000000 with coins [1, 7, 11]. Is a dp array over every amount a good plan?',
+        options: [
+          'Yes, it is O(amount), which is linear and therefore fine',
+          'No, the table would need 10^9 cells; the state space is too large, so look for a maths or greedy argument',
+          'Yes, as long as you use memoization instead of a table',
+          'No, because coin change is never a DP problem',
+        ],
+        answerIndex: 1,
+        explanation: 'O(amount) is linear in the value of the amount but exponential in the number of digits you were handed. A billion cells is gigabytes of memory, so the state space itself is the blocker.',
+      },
+      {
+        question: 'For Climbing Stairs with dp[i] = dp[i-1] + dp[i-2], what happens if you set dp[2] = 1?',
+        options: [
+          'Nothing, because dp[2] is never read',
+          'Every answer from dp[3] upward is too small, since two real routes reach step 2',
+          'The program crashes with an index error',
+          'Only odd values of n are affected',
+        ],
+        answerIndex: 1,
+        explanation: 'dp[3] is dp[2] + dp[1], so an undercount in the base case flows into every later cell. Wrong base cases are the most common silent DP bug.',
+      },
+    ],
+    sources: [
+      'MIT 6.006 lectures on dynamic programming',
+      'CLRS ch. 15, Dynamic Programming',
+      'CP-Algorithms, dynamic programming section',
+      'USACO Guide, Introduction to DP',
+      'AtCoder Educational DP Contest, problems A and B',
+      'CSES Problem Set, Dynamic Programming section',
+    ],
     problems: [
       {
         id: 'fibonacci-number',
@@ -228,6 +446,7 @@ int climbTable(int n) {
         patternId: 'dp-1d',
         hint: 'Write the plain recursion, then add a memo, then replace it with two rolling variables and compare how each behaves for n = 30.',
         xp: 20,
+        tier: 'beginner',
       },
       {
         id: 'climbing-stairs',
@@ -237,6 +456,7 @@ int climbTable(int n) {
         patternId: 'dp-1d',
         hint: 'To stand on step n you came from step n-1 or n-2, so add those two counts together.',
         xp: 20,
+        tier: 'beginner',
       },
       {
         id: 'n-th-tribonacci-number',
@@ -246,6 +466,7 @@ int climbTable(int n) {
         patternId: 'dp-1d',
         hint: 'Same as Fibonacci but each value is the sum of the previous three; keep three rolling variables.',
         xp: 20,
+        tier: 'intermediate',
       },
       {
         id: 'min-cost-climbing-stairs',
@@ -255,6 +476,7 @@ int climbTable(int n) {
         patternId: 'dp-1d',
         hint: 'dp[i] is the cheapest way to stand on step i: cost[i] plus the smaller of dp[i-1] and dp[i-2].',
         xp: 20,
+        tier: 'intermediate',
       },
       {
         id: 'perfect-squares',
@@ -264,6 +486,7 @@ int climbTable(int n) {
         patternId: 'dp-1d',
         hint: 'dp[n] is 1 plus the minimum of dp[n - s] over every square s not larger than n; start from the memoized recursion if the table feels hard.',
         xp: 40,
+        tier: 'advanced',
       },
     ],
   },
@@ -454,6 +677,219 @@ int rob(vector<int>& nums) {
       'Trace a 5-element example by hand before you trust the code.',
     ],
     patternIds: ['dp-1d'],
+    definition:
+      'One-dimensional DP covers problems where a single number describes the state, such as an index, an amount or a length, and dp[i] stores the best value or the count for that state. Each cell is built from a small fixed set of earlier cells.',
+    coreIdea:
+      'At house i the only things that matter are the best total you could already hold at house i-1 and at house i-2; which exact houses were robbed is irrelevant. Because the whole past collapses into two numbers, there are only n states instead of 2^n subsets, and each state costs O(1). That turns O(2^n) into O(n), and since only two cells are ever read, the O(n) array shrinks to two variables and O(1) space.',
+    visual: [
+      {
+        caption: 'House Robber on [2, 7, 9, 3, 1]. State: dp[i] = most money from the first i houses. Base: dp[0]=0, dp[1]=2.',
+        frame: [
+          'money      -    2    7    9    3    1',
+          'i          0    1    2    3    4    5',
+          'dp      [  0 ][  2 ][  . ][  . ][  . ][  . ]',
+          '           ^     ^',
+          '           base cells, no decision to make yet',
+        ].join('\n'),
+      },
+      {
+        caption: 'Fill dp[2]. Transition: dp[i] = max(dp[i-1], money[i-1] + dp[i-2]).',
+        frame: [
+          'money      -    2    7    9    3    1',
+          'i          0    1    2    3    4    5',
+          'dp      [  0 ][  2 ][  7 ][  . ][  . ][  . ]',
+          '           ^     ^     ^',
+          '           |     |     +- new cell dp[2]',
+          '           +-----+------- sources dp[0]=0 and dp[1]=2',
+          '',
+          'dp[2] = max(2, 7 + 0) = 7   (rob the 7)',
+        ].join('\n'),
+      },
+      {
+        caption: 'Fill dp[3] from dp[1] and dp[2].',
+        frame: [
+          'money      -    2    7    9    3    1',
+          'i          0    1    2    3    4    5',
+          'dp      [  0 ][  2 ][  7 ][ 11 ][  . ][  . ]',
+          '                 ^     ^     ^',
+          '                 |     |     +- new cell dp[3]',
+          '                 +-----+------- dp[1]=2 and dp[2]=7',
+          '',
+          'dp[3] = max(7, 9 + 2) = 11  (rob 2 and 9)',
+        ].join('\n'),
+      },
+      {
+        caption: 'Fill dp[4]. Here skipping wins, so the running best simply carries over.',
+        frame: [
+          'money      -    2    7    9    3    1',
+          'i          0    1    2    3    4    5',
+          'dp      [  0 ][  2 ][  7 ][ 11 ][ 11 ][  . ]',
+          '                       ^     ^     ^',
+          '                       |     |     +- new cell dp[4]',
+          '                       +-----+------- dp[2]=7 and dp[3]=11',
+          '',
+          'dp[4] = max(11, 3 + 7) = 11  (skip the 3)',
+        ].join('\n'),
+      },
+      {
+        caption: 'Fill dp[5] and read the answer off the last cell.',
+        frame: [
+          'money      -    2    7    9    3    1',
+          'i          0    1    2    3    4    5',
+          'dp      [  0 ][  2 ][  7 ][ 11 ][ 11 ][ 12 ]',
+          '                             ^     ^     ^',
+          '                             +-----+-----+',
+          '',
+          'dp[5] = max(11, 1 + 11) = 12',
+          'answer 12 = houses 2 + 9 + 1, no two adjacent',
+        ].join('\n'),
+      },
+    ],
+    pseudocode: `// House Robber shape.
+// State:      dp[i] = best total using only the first i items.
+// Transition: dp[i] = max(dp[i - 1], value[i - 1] + dp[i - 2]).
+// Base case:  dp[0] = 0, dp[1] = value[0].
+
+function bestOverSequence(value):
+    n = length of value
+    create table dp with n + 1 cells
+    dp[0] = 0
+    dp[1] = value[0]
+    for i from 2 to n:
+        skip = dp[i - 1]                       // leave item i alone
+        take = value[i - 1] + dp[i - 2]        // take it, so item i-1 is out
+        dp[i] = max(skip, take)
+    return dp[n]
+
+// Only two cells are ever read, so the array is not needed.
+function bestRolling(value):
+    prev2 = 0
+    prev1 = 0
+    for each v in value:
+        current = max(prev1, v + prev2)
+        prev2 = prev1
+        prev1 = current
+    return prev1`,
+    complexity: [
+      { label: 'Recursion, no memo', time: 'O(2^n)', space: 'O(n)', note: 'skip or take branches at every index; space is the call stack' },
+      { label: 'DP table', time: 'O(n)', space: 'O(n)', note: 'n + 1 cells with O(1) work per cell' },
+      { label: 'Rolling variables', time: 'O(n)', space: 'O(1)', note: 'keep only dp[i-1] and dp[i-2]' },
+      { label: 'Coin Change shape', time: 'O(amount * coins)', space: 'O(amount)', note: 'every amount tries every coin; the bound follows the value of amount, not its digit count' },
+    ],
+    dryRun: {
+      input: 'nums = [2, 7, 9, 3, 1]',
+      goal: 'Find the largest total with no two neighbouring houses robbed, using the rolling variables prev2 and prev1.',
+      steps: [
+        { state: 'prev2=0 prev1=0', action: 'Start before the first house: with no houses the best total is 0.' },
+        { state: 'money=2 prev2=0 prev1=0', action: 'current = max(0, 2 + 0) = 2, so robbing the first house wins; slide to prev2=0, prev1=2.' },
+        { state: 'money=7 prev2=0 prev1=2', action: 'current = max(2, 7 + 0) = 7; slide to prev2=2, prev1=7.' },
+        { state: 'money=9 prev2=2 prev1=7', action: 'current = max(7, 9 + 2) = 11, taking 9 plus the best from two houses back; slide to prev2=7, prev1=11.' },
+        { state: 'money=3 prev2=7 prev1=11', action: 'current = max(11, 3 + 7) = 11, so skipping wins and the total stands still; slide to prev2=11, prev1=11.' },
+        { state: 'money=1 prev2=11 prev1=11', action: 'current = max(11, 1 + 11) = 12; slide to prev2=11, prev1=12.' },
+        { state: 'loop finished prev1=12', action: 'Every house has been considered, so return prev1.' },
+      ],
+      result: '12, from robbing 2, 9 and 1 (indices 0, 2 and 4). Every other legal set is smaller: 2+9=11, 7+3=10, 9+1=10, 7+1=8.',
+    },
+    mistakes: [
+      {
+        mistake: 'Writing dp[i] = value[i] + dp[i-2] and dropping the skip branch.',
+        why: 'It forces you to take every second item. On [2, 1, 1, 2] it returns 3 instead of 4, because the best answer takes both ends and skips two in a row.',
+        fix: 'Always compare both choices: dp[i] = max(dp[i-1], value[i-1] + dp[i-2]).',
+      },
+      {
+        mistake: 'Filling a minimisation table such as Coin Change with zeros.',
+        why: 'A zero means free, so an amount that cannot be built looks cheaper than one that can, and the minimum never rises above 0.',
+        fix: 'Fill with a large sentinel (infinity, or amount + 1), keep dp[0] = 0, and translate the sentinel into -1 at the end.',
+      },
+      {
+        mistake: 'Swapping the loop order between Coin Change II and Combination Sum IV.',
+        why: 'Coins outside and amounts inside counts each combination once; amounts outside and coins inside counts every ordering separately. Both versions compile and quietly return the wrong count.',
+        fix: 'Decide first whether order matters, then match the loops: unordered combinations put the items on the outside.',
+      },
+      {
+        mistake: 'Handling House Robber II by wrapping the index with a modulo.',
+        why: 'The real constraint is that the first and last house cannot both be taken, which a modulo does not express, so the DP happily robs both ends.',
+        fix: 'Run the linear House Robber twice, once without the first house and once without the last, and take the larger. Handle n = 1 separately.',
+      },
+      {
+        mistake: 'Allocating dp with n cells when the state runs from 0 to n.',
+        why: 'dp[n] is then out of range, or the loop stops one step early and the last item is never considered.',
+        fix: 'If the state includes the empty prefix, the table needs n + 1 cells. Say out loud what dp[0] and dp[n] mean before allocating.',
+      },
+    ],
+    whenToUse: [
+      'One sequence or one number, with the words maximum, minimum, or number of ways.',
+      'The choice at position i depends only on a couple of earlier positions.',
+      'A constraint like "you cannot pick two adjacent" or "reach the last index".',
+      'An amount, capacity or length small enough to be used directly as an array index.',
+    ],
+    whenNotToUse: [
+      'You must print the chosen set itself and n is at most about 20; backtracking gives you the sets directly.',
+      'The amount goes up to 10^9; an array that long will not fit, so look for maths or a greedy rule.',
+      'An exchange argument proves a greedy rule works, as in Jump Game reachability; greedy is shorter and O(n).',
+      'The state needs two independent indices, such as two strings or a grid; that is 2D DP, not 1D.',
+      'Each cell needs the best over all earlier cells under a range condition; plain O(n^2) DP times out, so add a segment tree or a monotonic structure.',
+    ],
+    relatedTopics: [
+      { id: 'dp-intro-memo-and-tabulation', kind: 'concept', why: 'Every 1D DP here is the memoized recursion from the intro, rewritten as a loop.' },
+      { id: 'kadane-max-subarray', kind: 'concept', why: 'Kadane is the smallest 1D DP: best subarray ending at i, kept in a single rolling variable.' },
+      { id: 'knapsack', kind: 'concept', why: 'Coin Change is a 1D table over amounts, which is the knapsack table with capacity as the index.' },
+      { id: 'greedy-basics', kind: 'concept', why: 'Some 1D DP problems, such as Jump Game, collapse into a one-line greedy once the exchange argument is proved.' },
+    ],
+    quiz: [
+      {
+        question: 'Coin Change with coins [1, 2, 5] and amount 100 fills a table of 101 cells. What is the time complexity?',
+        options: [
+          'O(amount), because there is one loop over amounts',
+          'O(amount * number of coins), since every amount tries every coin',
+          'O(2^amount), because each coin can be used many times',
+          'O(coins * log amount), thanks to binary search',
+        ],
+        answerIndex: 1,
+        explanation: 'The outer loop runs over amounts and the inner loop over coins, so the work is the product of the two sizes: 101 x 3 steps here.',
+      },
+      {
+        question: 'On House Robber, why can the dp array be thrown away and replaced by two variables?',
+        options: [
+          'Because the values in the array are always increasing',
+          'Because dp[i] only ever reads dp[i-1] and dp[i-2], so older cells are dead',
+          'Because the answer is always the sum of alternating elements',
+          'Because the input happens to be sorted',
+        ],
+        answerIndex: 1,
+        explanation: 'Space can be reduced whenever the transition reaches back a fixed, small number of cells. Nothing older is read again, so it can be dropped.',
+      },
+      {
+        question: 'Would 1D DP be the right tool for "maximum sum of a subarray of exactly k elements"?',
+        options: [
+          'Yes, and it is the natural tool here',
+          'It works, but a fixed-size sliding window is simpler and also O(n)',
+          'No, that problem needs a 2D table',
+          'No, the array must be sorted first',
+        ],
+        answerIndex: 1,
+        explanation: 'A fixed window length is a window problem, not a decision-per-step problem. Add the entering element and subtract the leaving one, in O(n) time and O(1) space.',
+      },
+      {
+        question: 'A Coin Change table is initialised to 0 everywhere instead of infinity. What goes wrong?',
+        options: [
+          'Nothing, 0 is a safe starting value for a minimum',
+          'Unreachable amounts look like they cost 0 coins, so the minimum is never correct',
+          'The program crashes on amount 0',
+          'It only breaks when one of the coins has value 1',
+        ],
+        answerIndex: 1,
+        explanation: 'A minimisation table must start worse than any real answer. A 0 is better than every real answer, so it wins every comparison and poisons the table.',
+      },
+    ],
+    sources: [
+      'CLRS ch. 15, Dynamic Programming',
+      'MIT 6.006 lectures on dynamic programming',
+      'USACO Guide, Introduction to DP',
+      'CSES Problem Set, Dice Combinations and Minimizing Coins',
+      'AtCoder Educational DP Contest, problems A to C',
+      'CP-Algorithms, dynamic programming section',
+    ],
     problems: [
       {
         id: 'house-robber',
@@ -463,6 +899,7 @@ int rob(vector<int>& nums) {
         patternId: 'dp-1d',
         hint: 'At each house take max(best up to previous house, this house plus best up to two houses back).',
         xp: 40,
+        tier: 'beginner',
       },
       {
         id: 'delete-and-earn',
@@ -472,6 +909,7 @@ int rob(vector<int>& nums) {
         patternId: 'dp-1d',
         hint: 'Bucket the points by value so that choosing value v forbids v-1 and v+1; that is House Robber over the value axis.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'house-robber-ii',
@@ -481,6 +919,7 @@ int rob(vector<int>& nums) {
         patternId: 'dp-1d',
         hint: 'The first and last house cannot both be robbed, so run the linear House Robber on nums[1:] and on nums[:-1] and take the larger.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'coin-change',
@@ -490,6 +929,7 @@ int rob(vector<int>& nums) {
         patternId: 'dp-1d',
         hint: 'dp[a] is the fewest coins to make amount a; for every coin c that fits, try 1 + dp[a - c], and keep infinity where no coins work.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'maximum-product-subarray',
@@ -499,6 +939,7 @@ int rob(vector<int>& nums) {
         patternId: 'dp-1d',
         hint: 'A negative number flips the best and worst, so track both the maximum and the minimum product ending at each index.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'jump-game',
@@ -508,6 +949,7 @@ int rob(vector<int>& nums) {
         patternId: 'dp-1d',
         hint: 'dp[i] says whether index i is reachable; or simpler, keep the furthest index you can reach so far and stop if you fall behind it.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'minimum-cost-for-tickets',
@@ -517,6 +959,7 @@ int rob(vector<int>& nums) {
         patternId: 'dp-1d',
         hint: 'dp[day] is the cheapest cover through that day; on a travel day take the min over buying a 1, 7 or 30-day pass ending today.',
         xp: 40,
+        tier: 'advanced',
       },
     ],
   },
@@ -691,6 +1134,208 @@ int uniquePaths(int m, int n) {
       'Four-direction movement is not grid DP; reach for BFS or Dijkstra instead.',
     ],
     patternIds: ['dp-2d'],
+    definition:
+      'Grid DP solves problems on a matrix where the state is a cell (row, column) and movement is restricted, usually to right and down. Each cell is computed from neighbours that were already filled, so one sweep of the table answers the whole question.',
+    coreIdea:
+      'If you can only step right or down, every route into cell (r, c) passes through the cell above it or the cell to its left, and nothing else. So the answer for a cell is a one-line combination of two numbers that are already known. There are m*n cells and each costs O(1), which replaces the roughly 2^(m+n) routes the plain recursion would walk one at a time.',
+    visual: [
+      {
+        caption: 'Unique Paths on a 3x3 grid. State: dp[r][c] = routes from the start to that cell. Base: the top row and left column are all 1.',
+        frame: [
+          '          c0    c1    c2',
+          'r0     [  1 ][  1 ][  1 ]',
+          'r1     [  1 ][  . ][  . ]',
+          'r2     [  1 ][  . ][  . ]',
+          '',
+          'only one straight line reaches an edge cell',
+        ].join('\n'),
+      },
+      {
+        caption: 'Fill dp[1][1]. Transition: dp[r][c] = dp[r-1][c] + dp[r][c-1].',
+        frame: [
+          '          c0    c1    c2',
+          'r0     [  1 ][  1u][  1 ]',
+          'r1     [  1l][  2*][  . ]',
+          'r2     [  1 ][  . ][  . ]',
+          '',
+          'u = source above, l = source left, * = new cell',
+          'dp[1][1] = 1 (above) + 1 (left) = 2',
+        ].join('\n'),
+      },
+      {
+        caption: 'Fill dp[1][2], still moving left to right along row 1.',
+        frame: [
+          '          c0    c1    c2',
+          'r0     [  1 ][  1 ][  1u]',
+          'r1     [  1 ][  2l][  3*]',
+          'r2     [  1 ][  . ][  . ]',
+          '',
+          'dp[1][2] = 1 (above) + 2 (left) = 3',
+        ].join('\n'),
+      },
+      {
+        caption: 'Fill dp[2][1] at the start of the next row.',
+        frame: [
+          '          c0    c1    c2',
+          'r0     [  1 ][  1 ][  1 ]',
+          'r1     [  1 ][  2u][  3 ]',
+          'r2     [  1l][  3*][  . ]',
+          '',
+          'dp[2][1] = 2 (above) + 1 (left) = 3',
+        ].join('\n'),
+      },
+      {
+        caption: 'Fill the last cell. The answer sits in the bottom-right corner.',
+        frame: [
+          '          c0    c1    c2',
+          'r0     [  1 ][  1 ][  1 ]',
+          'r1     [  1 ][  2 ][  3u]',
+          'r2     [  1 ][  3l][  6*]',
+          '',
+          'dp[2][2] = 3 (above) + 3 (left) = 6',
+          'answer: 6 routes across a 3x3 grid',
+        ].join('\n'),
+      },
+    ],
+    pseudocode: `// Unique Paths.
+// State:      dp[r][c] = number of routes from (0,0) to (r,c).
+// Transition: dp[r][c] = dp[r-1][c] + dp[r][c-1].
+// Base case:  dp[0][c] = 1 and dp[r][0] = 1, one straight line each.
+
+function uniquePaths(rows, cols):
+    create table dp of size rows x cols
+    for c from 0 to cols - 1:
+        dp[0][c] = 1
+    for r from 0 to rows - 1:
+        dp[r][0] = 1
+    for r from 1 to rows - 1:                 // top and left are ready first
+        for c from 1 to cols - 1:
+            dp[r][c] = dp[r - 1][c] + dp[r][c - 1]
+    return dp[rows - 1][cols - 1]
+
+// Minimum Path Sum is the same sweep with one line changed:
+//     dp[r][c] = grid[r][c] + min(dp[r - 1][c], dp[r][c - 1])
+// Maximal Square, for a cell holding 1:
+//     dp[r][c] = 1 + min(dp[r-1][c], dp[r][c-1], dp[r-1][c-1])`,
+    complexity: [
+      { label: 'Recursion, no memo', time: 'O(2^(m+n))', space: 'O(m + n)', note: 'one branch per direction and the same cell asked many times' },
+      { label: 'Full table', time: 'O(m * n)', space: 'O(m * n)', note: 'each cell filled once; keep the table if the path must be rebuilt' },
+      { label: 'Rolling row', time: 'O(m * n)', space: 'O(n)', note: 'a row only reads the row above and the cell to its left' },
+      { label: 'Empty grid, closed form', time: 'O(m + n)', space: 'O(1)', note: 'with no obstacles the count is the binomial C(m+n-2, m-1)' },
+    ],
+    dryRun: {
+      input: 'm = 3, n = 3 (a 3x3 grid, moving only right or down)',
+      goal: 'Count the routes from the top-left to the bottom-right using the single rolling row dp of length 3.',
+      steps: [
+        { state: 'dp = [1, 1, 1]', action: 'Row 0 is the base case: exactly one route reaches each cell of the top row.' },
+        { state: 'row 1, c=1, dp = [1, 1, 1]', action: 'dp[1] += dp[0] gives 1 + 1 = 2. The old dp[1] was the cell above, dp[0] is the cell to the left in the new row.' },
+        { state: 'row 1, c=2, dp = [1, 2, 1]', action: 'dp[2] += dp[1] gives 1 + 2 = 3, so row 1 is now [1, 2, 3].' },
+        { state: 'row 2, c=1, dp = [1, 2, 3]', action: 'dp[1] += dp[0] gives 2 + 1 = 3.' },
+        { state: 'row 2, c=2, dp = [1, 3, 3]', action: 'dp[2] += dp[1] gives 3 + 3 = 6, so row 2 is [1, 3, 6].' },
+        { state: 'rows finished, dp = [1, 3, 6]', action: 'Return the last cell of the row, which is the bottom-right corner.' },
+      ],
+      result: '6. It matches the binomial check C(4, 2) = 6, and the routes can be listed as the arrangements of two rights and two downs: RRDD, RDRD, RDDR, DRRD, DRDR, DDRR.',
+    },
+    mistakes: [
+      {
+        mistake: 'Sweeping bottom to top and right to left while the transition reads the cell above and to the left.',
+        why: 'A cell then reads a neighbour that is still empty, so it silently adds zeros and every count comes out too small.',
+        fix: 'Match the loop order to the transition: if you read up and left, sweep rows top to bottom and columns left to right.',
+      },
+      {
+        mistake: 'Setting the whole first row of Unique Paths II to 1 even after an obstacle.',
+        why: 'Once the top row is blocked, no cell beyond the block is reachable along that row, but the loop keeps writing 1 and invents routes that do not exist.',
+        fix: 'Walk the first row and column and stop writing 1 the moment you hit an obstacle; every cell after it is 0.',
+      },
+      {
+        mistake: 'Using 0 as the starting value for a minimum-cost grid.',
+        why: 'min(0, real cost) always picks 0, so the answer collapses to the cheapest single cell instead of a whole path.',
+        fix: 'Set the base row and column to running sums, and use infinity for any cell that must not be entered.',
+      },
+      {
+        mistake: 'Reaching for grid DP when moves go up, down, left and right.',
+        why: 'Four-way movement creates cycles, so no order exists in which every neighbour is already final; the DP either loops or returns wrong answers.',
+        fix: 'Treat it as a graph: BFS for unweighted shortest steps, Dijkstra when the cells carry costs.',
+      },
+      {
+        mistake: 'Rolling the table down to one row and then trying to print the actual path.',
+        why: 'The rolling row overwrites history, so the choices that produced the answer are gone.',
+        fix: 'Keep the full m x n table, or store a separate matrix of the direction chosen in each cell, whenever the path itself is required.',
+      },
+    ],
+    whenToUse: [
+      'A matrix plus a movement rule such as "only right or down" or "down, down-left, down-right".',
+      'The question asks for the number of paths, the minimum path sum, or the best falling path.',
+      'A cell value can be written using only neighbours that come earlier in the sweep.',
+      'Largest square or rectangle of ones, where a cell summarises the block that ends at it.',
+    ],
+    whenNotToUse: [
+      'Movement is allowed in all four directions, so cycles exist; use BFS for unweighted grids and Dijkstra for weighted ones.',
+      'Cells may be revisited or items collected in any order; that is a graph or state-space search, not a table sweep.',
+      'The grid is empty and enormous; plain Unique Paths is the binomial C(m+n-2, m-1), computed in O(m+n).',
+      'The grid is huge but only a few cells matter; compress the coordinates and run the DP over those cells instead.',
+      'You need the path itself under tight memory; a rolling row cannot reconstruct it, so store parent choices.',
+    ],
+    relatedTopics: [
+      { id: 'dp-1d', kind: 'concept', why: 'A single grid row is a 1D DP; grid DP is the same loop nested once more.' },
+      { id: 'grid-graphs', kind: 'concept', why: 'The moment movement becomes four-directional the same matrix stops being a DP and becomes a graph traversal.' },
+      { id: 'shortest-paths', kind: 'concept', why: 'Weighted grids with free movement need Dijkstra, the general version of the minimum-path-sum sweep.' },
+      { id: 'lcs-and-lis', kind: 'concept', why: 'The LCS table is the same two-index sweep, with strings on the axes instead of grid coordinates.' },
+    ],
+    quiz: [
+      {
+        question: 'On a 100 x 100 grid with moves only right or down, how many cells does the DP compute and what is the time complexity?',
+        options: [
+          '10000 cells, O(m * n)',
+          '200 cells, O(m + n)',
+          'About 2^200 cells, O(2^(m+n))',
+          '10000 cells, but O(m * n * log n) because of the max operation',
+        ],
+        answerIndex: 0,
+        explanation: 'One cell per position and O(1) work per cell gives 100 x 100 = 10000 constant-time steps. The exponential figure is what the memo-free recursion would cost.',
+      },
+      {
+        question: 'Which loop order is correct when dp[r][c] reads the cell above and the cell to the left?',
+        options: [
+          'Rows bottom to top, columns right to left',
+          'Rows top to bottom, columns left to right',
+          'Any order, since the values settle after one pass',
+          'Diagonals only, starting from the bottom-right corner',
+        ],
+        answerIndex: 1,
+        explanation: 'Every source cell must already hold its final value. Reading up and left means sweeping downwards and rightwards.',
+      },
+      {
+        question: 'A robot may move up, down, left and right on a grid of costs and wants the cheapest route. Does the right-or-down table still work?',
+        options: [
+          'Yes, just run the same sweep four times',
+          'No, four-way movement creates cycles with no valid fill order; use Dijkstra',
+          'Yes, if you take the minimum over all four neighbours in one pass',
+          'No, and the problem cannot be solved in polynomial time',
+        ],
+        answerIndex: 1,
+        explanation: 'DP needs an order in which every source is already final. With cycles no such order exists, so you need a shortest-path algorithm that settles nodes by cost.',
+      },
+      {
+        question: 'Maximal Square uses dp[r][c] = 1 + min of three neighbours. Why min and not max?',
+        options: [
+          'To keep the numbers small and avoid overflow',
+          'Because a square can only grow as far as its weakest corner allows, so the smallest neighbour is the limit',
+          'Because max would be slower',
+          'Because the grid contains only zeros and ones',
+        ],
+        answerIndex: 1,
+        explanation: 'The new square has to be solid, so it is limited by the smallest of the squares ending above, to the left and diagonally. Using max would claim squares that contain a zero.',
+      },
+    ],
+    sources: [
+      'CLRS ch. 15, Dynamic Programming',
+      'MIT 6.006 lectures on dynamic programming',
+      'USACO Guide, Introduction to DP and grid paths',
+      'CSES Problem Set, Grid Paths',
+      'AtCoder Educational DP Contest, problem H (Grid 1)',
+      'CP-Algorithms, dynamic programming section',
+    ],
     problems: [
       {
         id: 'unique-paths',
@@ -700,6 +1345,7 @@ int uniquePaths(int m, int n) {
         patternId: 'dp-2d',
         hint: 'Every cell equals the cell above plus the cell to the left; the first row and column are all 1.',
         xp: 40,
+        tier: 'beginner',
       },
       {
         id: 'unique-paths-ii',
@@ -709,6 +1355,7 @@ int uniquePaths(int m, int n) {
         patternId: 'dp-2d',
         hint: 'Same as Unique Paths but an obstacle cell is set to 0 ways, including in the first row and column.',
         xp: 40,
+        tier: 'beginner',
       },
       {
         id: 'minimum-path-sum',
@@ -718,6 +1365,7 @@ int uniquePaths(int m, int n) {
         patternId: 'dp-2d',
         hint: 'dp[r][c] = grid[r][c] + min(dp[r-1][c], dp[r][c-1]); you can overwrite the grid itself.',
         xp: 40,
+        tier: 'beginner',
       },
       {
         id: 'triangle',
@@ -727,6 +1375,7 @@ int uniquePaths(int m, int n) {
         patternId: 'dp-2d',
         hint: 'Work from the bottom row up: each cell becomes its value plus the smaller of the two cells below it.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'minimum-falling-path-sum',
@@ -736,6 +1385,7 @@ int uniquePaths(int m, int n) {
         patternId: 'dp-2d',
         hint: 'Each cell adds the minimum of the three cells above it (up-left, up, up-right); answer is the minimum of the last row.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'maximal-square',
@@ -745,6 +1395,7 @@ int uniquePaths(int m, int n) {
         patternId: 'dp-2d',
         hint: 'For a 1 cell, dp = 1 + min(top, left, top-left) gives the largest square ending there; track the max and square it.',
         xp: 40,
+        tier: 'advanced',
       },
       {
         id: 'dungeon-game',
@@ -754,6 +1405,7 @@ int uniquePaths(int m, int n) {
         patternId: 'dp-2d',
         hint: 'Fill from the bottom-right backwards: the health needed at a cell is max(1, min(need right, need down) - cell value).',
         xp: 80,
+        tier: 'advanced',
       },
     ],
   },
@@ -990,6 +1642,7 @@ bool canPartition(vector<int>& nums) {
         patternId: 'knapsack',
         hint: 'If the total is odd answer false; otherwise ask whether some subset reaches total / 2 with a downward-loop reachable table.',
         xp: 40,
+        tier: 'beginner',
       },
       {
         id: 'target-sum',
@@ -999,6 +1652,7 @@ bool canPartition(vector<int>& nums) {
         patternId: 'knapsack',
         hint: 'The numbers given a plus sign must add to (total + target) / 2; count the subsets that reach that sum.',
         xp: 40,
+        tier: 'beginner',
       },
       {
         id: 'coin-change-ii',
@@ -1008,6 +1662,7 @@ bool canPartition(vector<int>& nums) {
         patternId: 'knapsack',
         hint: 'Unbounded knapsack: loop coins on the outside and amounts upward on the inside so each combination is counted once.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'last-stone-weight-ii',
@@ -1017,6 +1672,7 @@ bool canPartition(vector<int>& nums) {
         patternId: 'knapsack',
         hint: 'Split the stones into two groups as close to equal as possible; find the largest reachable sum not exceeding total / 2.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'ones-and-zeroes',
@@ -1026,6 +1682,7 @@ bool canPartition(vector<int>& nums) {
         patternId: 'knapsack',
         hint: 'A knapsack with two capacities (zeros and ones); loop both capacities downward for each string.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'combination-sum-iv',
@@ -1035,6 +1692,7 @@ bool canPartition(vector<int>& nums) {
         patternId: 'knapsack',
         hint: 'Order matters here, so loop the target on the outside and the numbers on the inside; dp[t] += dp[t - num].',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'profitable-schemes',
@@ -1044,6 +1702,7 @@ bool canPartition(vector<int>& nums) {
         patternId: 'knapsack',
         hint: 'A 2D knapsack over (people used, profit capped at minProfit); loop both dimensions downward per crime and sum the states with enough profit.',
         xp: 80,
+        tier: 'advanced',
       },
     ],
   },
@@ -1272,6 +1931,7 @@ int lengthOfLIS(vector<int>& nums) {
         patternId: 'lcs-lis',
         hint: 'dp[i] is the longest strictly increasing chain ending at i; check every earlier smaller element and return the maximum cell.',
         xp: 40,
+        tier: 'beginner',
       },
       {
         id: 'longest-common-subsequence',
@@ -1281,6 +1941,7 @@ int lengthOfLIS(vector<int>& nums) {
         patternId: 'lcs-lis',
         hint: 'Build an (m+1) x (n+1) table: matching letters add 1 to the diagonal, otherwise take the max of the cell above and to the left.',
         xp: 40,
+        tier: 'beginner',
       },
       {
         id: 'uncrossed-lines',
@@ -1290,6 +1951,7 @@ int lengthOfLIS(vector<int>& nums) {
         patternId: 'lcs-lis',
         hint: 'Lines cannot cross exactly when the matched pairs keep their order, so this is LCS on two integer arrays.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'maximum-length-of-pair-chain',
@@ -1299,6 +1961,7 @@ int lengthOfLIS(vector<int>& nums) {
         patternId: 'lcs-lis',
         hint: 'Sort the pairs by first value, then run LIS where pair j can precede pair i if j\'s second value is smaller than i\'s first.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'delete-operation-for-two-strings',
@@ -1308,6 +1971,7 @@ int lengthOfLIS(vector<int>& nums) {
         patternId: 'lcs-lis',
         hint: 'Keep the LCS and delete everything else: the answer is len(a) + len(b) - 2 * LCS.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'number-of-longest-increasing-subsequence',
@@ -1317,6 +1981,7 @@ int lengthOfLIS(vector<int>& nums) {
         patternId: 'lcs-lis',
         hint: 'Alongside length[i] keep count[i]; when a j gives a strictly longer chain reset the count, when it ties add to it.',
         xp: 40,
+        tier: 'advanced',
       },
       {
         id: 'russian-doll-envelopes',
@@ -1326,6 +1991,7 @@ int lengthOfLIS(vector<int>& nums) {
         patternId: 'lcs-lis',
         hint: 'Sort by width ascending and height descending for equal widths, then find the LIS of the heights with the O(n log n) tails method.',
         xp: 80,
+        tier: 'advanced',
       },
     ],
   },
@@ -1596,6 +2262,7 @@ int editDistance(const string& a, const string& b) {
         patternId: 'dp-1d',
         hint: 'dp[i] is true if some earlier dp[j] is true and s[j:i] is a dictionary word; put the words in a set first.',
         xp: 40,
+        tier: 'beginner',
       },
       {
         id: 'decode-ways',
@@ -1605,6 +2272,7 @@ int editDistance(const string& a, const string& b) {
         patternId: 'dp-1d',
         hint: 'dp[i] adds dp[i-1] when the last digit is 1-9 and dp[i-2] when the last two digits form 10-26.',
         xp: 40,
+        tier: 'beginner',
       },
       {
         id: 'palindromic-substrings',
@@ -1614,6 +2282,7 @@ int editDistance(const string& a, const string& b) {
         patternId: 'dp-2d',
         hint: 'Fill dp[i][j] from the end of the string: a range is a palindrome when its ends match and dp[i+1][j-1] is true or the range is short.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'longest-palindromic-substring',
@@ -1623,6 +2292,7 @@ int editDistance(const string& a, const string& b) {
         patternId: 'dp-2d',
         hint: 'Same palindrome table as Palindromic Substrings, but remember the start and length of the longest true cell.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'longest-palindromic-subsequence',
@@ -1632,6 +2302,7 @@ int editDistance(const string& a, const string& b) {
         patternId: 'lcs-lis',
         hint: 'Either compute the LCS of s with its reverse, or use a range table where matching ends add 2 to the inside answer.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'edit-distance',
@@ -1641,6 +2312,7 @@ int editDistance(const string& a, const string& b) {
         patternId: 'dp-2d',
         hint: 'Build the (m+1) x (n+1) table with base row and column 0..n and 0..m, then match = diagonal, mismatch = 1 + min of three neighbours.',
         xp: 40,
+        tier: 'intermediate',
       },
       {
         id: 'interleaving-string',
@@ -1650,6 +2322,7 @@ int editDistance(const string& a, const string& b) {
         patternId: 'dp-2d',
         hint: 'dp[i][j] is true if the first i+j letters of s3 can be built from the first i of s1 and first j of s2; check which string could have supplied the last letter.',
         xp: 40,
+        tier: 'advanced',
       },
       {
         id: 'regular-expression-matching',
@@ -1659,6 +2332,7 @@ int editDistance(const string& a, const string& b) {
         patternId: 'dp-2d',
         hint: 'dp[i][j] means s[:i] matches p[:j]; a star either uses zero of the previous pattern char (dp[i][j-2]) or one more of it when the current letter matches.',
         xp: 80,
+        tier: 'advanced',
       },
     ],
   },

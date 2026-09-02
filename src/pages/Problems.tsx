@@ -6,7 +6,7 @@ import { dueReviews } from '@/lib/scheduler'
 import { todayKey } from '@/lib/dates'
 import { SectionTitle, Panel, Eyebrow, Stat, cx } from '@/components/ui'
 import { ProblemRow } from './ConceptPage'
-import type { Difficulty } from '@/content/types'
+import type { Difficulty, Tier } from '@/content/types'
 
 type Filter = 'all' | 'due' | 'solved' | 'struggled' | 'unsolved'
 
@@ -18,6 +18,7 @@ export default function Problems() {
   const [gate, setGate] = useState('all')
   const [diff, setDiff] = useState<Difficulty | 'all'>('all')
   const [pattern, setPattern] = useState('all')
+  const [tier, setTier] = useState<Tier | 'all'>('all')
   const today = todayKey()
   const due = useMemo(() => new Set(dueReviews(state, today).map((a) => a.problemId)), [attempts, today])
 
@@ -32,10 +33,11 @@ export default function Problems() {
       if (gate !== 'all' && p.gateId !== gate) return false
       if (diff !== 'all' && p.difficulty !== diff) return false
       if (pattern !== 'all' && p.patternId !== pattern) return false
+      if (tier !== 'all' && p.tier !== tier) return false
       if (s && !p.title.toLowerCase().includes(s)) return false
       return true
     })
-  }, [q, filter, gate, diff, pattern, attempts, due])
+  }, [q, filter, gate, diff, pattern, tier, attempts, due])
 
   const solved = problems.filter((p) => attempts[p.id]?.status === 'solved').length
   const struggled = problems.filter((p) => attempts[p.id]?.status === 'failed').length
@@ -78,6 +80,12 @@ export default function Problems() {
           <option value="easy">Easy</option>
           <option value="medium">Medium</option>
           <option value="hard">Hard</option>
+        </select>
+        <select className="input !w-auto" value={tier} onChange={(e) => setTier(e.target.value as Tier | 'all')}>
+          <option value="all">Any level</option>
+          <option value="beginner">Beginner</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="advanced">Advanced</option>
         </select>
       </div>
       <div className="flex gap-1 mb-5 flex-wrap">

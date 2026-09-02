@@ -195,6 +195,211 @@ int main() {
       'Never set lo = mid or hi = mid with an inclusive range; that can loop forever.',
       'Sorting first costs O(n log n), so binary search pays off on already-sorted data or repeated searches.',
     ],
+    definition:
+      'Linear search checks elements one at a time until it finds the target. Binary search works only on sorted data: it keeps a window that must contain the target and throws away half of that window with every comparison.',
+    coreIdea:
+      'In sorted data one comparison tells you far more than "this is not it". Comparing the target with the middle value proves that an entire half is wrong, because everything on that side is either all too small or all too big. Since we never have to look at that half again, the number of steps is just the number of times n can be halved, so O(n) collapses to O(log n).',
+    visual: [
+      {
+        caption: 'Invariant: if 38 is present it lies inside the closed window [lo, hi]. Start with the whole array.',
+        frame: [
+          'target = 38',
+          '[  2  5  8 12 16 23 38 56 ]',
+          '   L                    H     lo=0  hi=7',
+          '            M                 mid=3  a[3]=12',
+          '12 < 38  ->  mid and everything left of it is too small',
+        ].join('\n'),
+      },
+      {
+        caption: 'lo = mid + 1. Indexes 0 to 3 are discarded and never looked at again.',
+        frame: [
+          '[  x  x  x  x 16 23 38 56 ]',
+          '               L        H     lo=4  hi=7',
+          '                  M           mid=5  a[5]=23',
+          '23 < 38  ->  move lo past mid again, lo = 6',
+        ].join('\n'),
+      },
+      {
+        caption: 'Two cells left. mid rounds down, so mid lands on lo. The window still contains the target.',
+        frame: [
+          '[  x  x  x  x  x  x 38 56 ]',
+          '                     L  H     lo=6  hi=7',
+          '                     M        mid=6  a[6]=38',
+          'a[mid] equals the target  ->  return 6',
+          '3 comparisons for 8 items, not 7',
+        ].join('\n'),
+      },
+      {
+        caption: 'Same array, searching for 30, which is absent. The window shrinks until lo passes hi.',
+        frame: [
+          '[  x  x  x  x  x  x 38 56 ]',
+          '                     L  H     lo=6  hi=7',
+          '                     M        mid=6  a[6]=38 > 30',
+          'hi = mid - 1 = 5, so now lo=6 and hi=5',
+          'lo > hi, the window is empty  ->  return -1',
+        ].join('\n'),
+      },
+      {
+        caption: 'The other form. Do not ask "where is 20"; ask "where does the yes/no test first turn true".',
+        frame: [
+          '[  2  5  8 12 16 23 38 56 ]',
+          '   F  F  F  F  F  T  T  T   cond(i): a[i] >= 20',
+          '   L                       H  lo=0  hi=8 = n',
+          '            M                 mid=3  F  ->  lo = 4',
+        ].join('\n'),
+      },
+      {
+        caption: 'When the test is true we set hi = mid, not mid - 1, because mid itself may be the first true. The loop runs while lo < hi.',
+        frame: [
+          '[  x  x  x  x 16 23 38 56 ]',
+          '               F  T  T  T   cond(i)',
+          '               L           H  lo=4  hi=8',
+          '                  M           mid=5  T  ->  hi = mid',
+          'then lo=4 hi=5, mid=4, F -> lo=5; lo == hi, stop',
+          'answer: first index with a[i] >= 20 is 5',
+        ].join('\n'),
+      },
+    ],
+    pseudocode: `function binarySearchExact(a, target):
+    lo = 0
+    hi = length(a) - 1              // both ends are inside the window
+    while lo <= hi:                 // lo > hi means the window is empty
+        mid = lo + (hi - lo) / 2    // integer division, rounds down
+        if a[mid] == target:
+            return mid
+        if a[mid] < target:
+            lo = mid + 1            // mid is too small, drop it
+        else:
+            hi = mid - 1            // mid is too big, drop it
+    return -1
+
+function lowerBound(a, target):
+    lo = 0
+    hi = length(a)                  // hi is one past the last index
+    while lo < hi:
+        mid = lo + (hi - lo) / 2
+        if a[mid] >= target:
+            hi = mid                // mid may be the answer, keep it
+        else:
+            lo = mid + 1
+    return lo                       // first index with a[i] >= target`,
+    complexity: [
+      { label: 'Linear search, worst case', time: 'O(n)', space: 'O(1)', note: 'no order to exploit, so every cell may be checked' },
+      { label: 'Binary search, best case', time: 'O(1)', space: 'O(1)', note: 'the very first mid is the target' },
+      { label: 'Binary search, worst case', time: 'O(log n)', space: 'O(1)', note: 'about log2(n) + 1 comparisons before the window empties' },
+      { label: 'Binary search, average case', time: 'O(log n)', space: 'O(1)', note: 'still logarithmic; only the constant changes' },
+      { label: 'Recursive binary search', time: 'O(log n)', space: 'O(log n)', note: 'one stack frame per level of halving' },
+    ],
+    dryRun: {
+      input: 'nums = [1, 3, 5, 7, 9, 11, 13], target = 13',
+      goal: 'Find the index of 13, or -1 if it is not there, using the optimized binary_search above.',
+      steps: [
+        { state: 'lo=0 hi=6 target=13', action: 'The window is the whole array. lo <= hi, so the loop body runs.' },
+        { state: 'lo=0 hi=6 mid=3 nums[mid]=7', action: 'mid = (0 + 6) // 2 = 3 and nums[3] is 7, which is not 13.' },
+        { state: 'lo=0 hi=6 mid=3', action: '7 < 13, so 13 cannot sit at index 3 or below. Set lo = mid + 1 = 4.' },
+        { state: 'lo=4 hi=6', action: 'lo is still not past hi, so the window [4, 6] may hold 13. Loop again.' },
+        { state: 'lo=4 hi=6 mid=5 nums[mid]=11', action: 'mid = (4 + 6) // 2 = 5 and nums[5] is 11, not 13, and 11 < 13, so lo becomes 6.' },
+        { state: 'lo=6 hi=6', action: 'A one-cell window. lo <= hi still holds, and mid = (6 + 6) // 2 = 6.' },
+        { state: 'lo=6 hi=6 mid=6 nums[mid]=13', action: 'nums[6] equals the target, so the function returns 6 straight away.' },
+      ],
+      result:
+        'The answer is 6. It is right because nums[6] is 13, and every index that was thrown away was ruled out by a comparison proving the values there were too small.',
+    },
+    mistakes: [
+      {
+        mistake: 'Writing while lo < hi while hi starts at n - 1 in the exact-match version.',
+        why: 'When the window shrinks to one cell, lo equals hi, the loop stops, and that last cell is never tested. A target sitting there is reported as missing.',
+        fix: 'Use while lo <= hi with hi = n - 1, or switch entirely to the half-open form with hi = n and while lo < hi. Do not mix them.',
+      },
+      {
+        mistake: 'Writing lo = mid instead of lo = mid + 1.',
+        why: 'mid rounds down, so with two cells left mid equals lo. Setting lo = mid changes nothing, the window never shrinks, and the loop spins forever.',
+        fix: 'Every branch must make the window strictly smaller. In the closed form always use lo = mid + 1 and hi = mid - 1.',
+      },
+      {
+        mistake: 'Using hi = mid - 1 inside the lower-bound version.',
+        why: 'mid itself may be the first index where the condition turns true, so subtracting one throws the answer away and the search returns a position that is too far right.',
+        fix: 'In the first-true form use hi = mid, and keep the loop condition as lo < hi so it still terminates.',
+      },
+      {
+        mistake: 'Computing mid as (lo + hi) / 2 in Java or C++ with very large indexes.',
+        why: 'lo + hi can pass the 32-bit signed limit and wrap to a negative number, which then indexes outside the array.',
+        fix: 'Write mid = lo + (hi - lo) / 2. Python integers never overflow, but keeping the habit costs nothing.',
+      },
+      {
+        mistake: 'Running binary search on data that is not sorted, or sorting inside the search function on every call.',
+        why: 'Without order the halving rule is meaningless and the result is arbitrary. Sorting per call costs O(n log n) and destroys the whole point of an O(log n) search.',
+        fix: 'Sort once outside the function, or use a hash set when you only need membership on unsorted data.',
+      },
+    ],
+    whenToUse: [
+      'The statement says the input is sorted, non-decreasing, or already in order.',
+      'n is large (10^5 or more) and each query must answer in about O(log n).',
+      'You will search the same array many times, so one O(n log n) sort pays for itself.',
+      'The question asks for a position in an ordered sequence, such as where a value would be inserted.',
+      'You can define a yes/no test on indexes that is false for a prefix and true afterwards.',
+    ],
+    whenNotToUse: [
+      'The array is unsorted and you need one single lookup; a plain O(n) scan beats sorting first.',
+      'You only need membership on unsorted data with no order requirement, so use a hash set for O(1) average lookups.',
+      'The data is a linked list, where you cannot jump to the middle in O(1); use a hash map or copy into an array first.',
+      'n is tiny, under about 30, where a linear scan is just as fast and far harder to get wrong.',
+      'The yes/no property flips back and forth instead of switching once, so no halving rule is valid; scan the range instead.',
+    ],
+    relatedTopics: [
+      { id: 'binary-search-variants', kind: 'concept', why: 'It reuses this exact window idea to find boundaries and to search over candidate answers.' },
+      { id: 'binary-search', kind: 'pattern', why: 'This concept is the canonical implementation of that pattern.' },
+      { id: 'sorting-basics', kind: 'concept', why: 'Binary search needs sorted input, and getting there costs O(n log n) up front.' },
+      { id: 'hash-map', kind: 'pattern', why: 'The alternative when the data is unsorted and you only need to test membership.' },
+    ],
+    quiz: [
+      {
+        question: 'A sorted array has 1,000,000 items. Roughly how many comparisons does binary search need in the worst case?',
+        options: ['About 20', 'About 1,000', 'About 500,000', 'About 1,000,000'],
+        answerIndex: 0,
+        explanation: 'Each comparison halves the window, so the count is log2(1,000,000), which is just under 20.',
+      },
+      {
+        question: 'You must answer exactly one "is x in this unsorted array of 10,000 numbers" question. What is fastest overall?',
+        options: [
+          'Sort the array, then binary search it',
+          'Scan the array once',
+          'Build a balanced search tree, then search it',
+          'Run binary search on the unsorted array',
+        ],
+        answerIndex: 1,
+        explanation: 'Sorting costs O(n log n) just to save a single O(n) scan, and binary search on unsorted data is simply incorrect.',
+      },
+      {
+        question: 'In the closed-window version, why must the "too small" branch write lo = mid + 1 rather than lo = mid?',
+        options: [
+          'To keep the search stable',
+          'Because mid has already been tested, and lo = mid can leave the window the same size forever',
+          'To avoid integer overflow',
+          'Because the array might contain duplicates',
+        ],
+        answerIndex: 1,
+        explanation: 'mid rounds down, so with two cells left mid equals lo. Writing lo = mid leaves lo and hi unchanged and the loop never ends.',
+      },
+      {
+        question: 'In the lower-bound version, what does the returned lo mean when no element satisfies the condition?',
+        options: ['It is -1', 'It equals n, one past the last index', 'It equals n - 1', 'It is undefined'],
+        answerIndex: 1,
+        explanation: 'hi starts at n, so if every element fails the test lo climbs all the way to n. That is the standard "nothing qualifies" signal for this form.',
+      },
+      {
+        question: 'How much extra space does the iterative binary search shown here use?',
+        options: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)'],
+        answerIndex: 0,
+        explanation: 'It keeps only lo, hi and mid. The recursive version would add O(log n) for the call stack.',
+      },
+    ],
+    sources: [
+      'MIT 6.006: searching and sorted arrays',
+      'CLRS ch. 2, including the binary search exercise',
+      'CP-Algorithms: Binary search',
+      'USACO Guide: Binary Search',
+    ],
     patternIds: ['binary-search', 'brute-force'],
     problems: [
       {
