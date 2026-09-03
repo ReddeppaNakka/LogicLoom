@@ -4,13 +4,12 @@ import { Trash2, Plus, Search } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { useApp } from '@/store/useApp'
 import { getPattern, getProblem, getConcept, patterns } from '@/lib/content'
-import { SectionTitle, Panel, Eyebrow, cx, useJp } from '@/components/ui'
+import { SectionTitle, Panel, Eyebrow, cx, Jp } from '@/components/ui'
 
 export default function Log() {
   const notes = useApp((s) => s.notes)
   const addNote = useApp((s) => s.addNote)
   const deleteNote = useApp((s) => s.deleteNote)
-  const jp = useJp()
   const [q, setQ] = useState('')
   const [pattern, setPattern] = useState('all')
   const [adding, setAdding] = useState(false)
@@ -96,7 +95,7 @@ export default function Log() {
           </div>
           {list.length === 0 ? (
             <Panel className="p-10 text-center">
-              <div className="jp text-[12px]" {...jp('空白')} />
+              <Jp text="空白" size="md" />
               <div className="display text-2xl mt-2">No notes yet.</div>
               <p className="text-muted text-sm mt-1">Press "Struggled" on any problem to start one.</p>
             </Panel>

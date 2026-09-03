@@ -8,7 +8,7 @@ import AppBackground from './AppBackground'
 import SystemMessages from './SystemMessages'
 import { applyAppearance } from '@/lib/appearance'
 import { glossOf } from '@/lib/kanji'
-import { Bar, RankBadge, cx, useJp } from './ui'
+import { Bar, RankBadge, cx, Jp } from './ui'
 
 /**
  * Pages where the eye must stay still: long-form reading, timed practice and
@@ -43,7 +43,6 @@ export default function Shell() {
   const ensureToday = useApp((s) => s.ensureToday)
   const focusMode = useApp((s) => s.focusMode)
   const appearance = useApp((s) => s.appearance)
-  const jp = useJp()
   const [open, setOpen] = useState(false)
   const loc = useLocation()
   const info = levelFromXp(totalXp)
@@ -130,7 +129,7 @@ export default function Shell() {
                 <>
                   <n.icon size={16} className={cx('shrink-0', isActive ? 'text-system' : 'text-muted group-hover:text-bone-dim')} />
                   <span className="flex-1">{n.label}</span>
-                  <span className="jp text-[10px] opacity-60 shrink-0" {...jp(n.jp)} />
+                  <Jp text={n.jp} className="shrink-0 opacity-70" />
                 </>
               )}
             </NavLink>

@@ -7,10 +7,11 @@ import {
   MOTION_LEVELS,
   READING_SIZES,
   READING_WIDTHS,
+  JAPANESE_LABEL_MODES,
   getBackground,
   type BackgroundId,
 } from '@/lib/appearance'
-import { SectionTitle, Panel, Eyebrow, Kanji, cx } from '@/components/ui'
+import { SectionTitle, Panel, Eyebrow, Kanji, Jp, cx } from '@/components/ui'
 
 export default function Appearance() {
   const a = useApp((s) => s.appearance)
@@ -163,15 +164,29 @@ export default function Appearance() {
               <Toggle on={a.readingSheet} onChange={(v) => set({ readingSheet: v })} />
             </div>
             <div className="hairline my-2" />
-            <div className="flex items-center justify-between gap-4 py-2">
-              <div>
-                <div className="text-[14px]">Japanese labels</div>
-                <div className="text-[12px] text-muted">
-                  The small words dotted around the interface, such as 門 (gate) and 日課 (daily routine). Hover any of them
-                  to see its reading and meaning. Turn this off to hide them entirely.
-                </div>
+            <div className="py-2">
+              <div className="text-[14px]">Japanese labels</div>
+              <div className="text-[12px] text-muted mb-3">
+                The small words dotted around the interface, such as 門 and 日課.
               </div>
-              <Toggle on={a.japaneseLabels} onChange={(v) => set({ japaneseLabels: v })} />
+              <div className="grid grid-cols-3 gap-2">
+                {JAPANESE_LABEL_MODES.map((m) => (
+                  <button
+                    key={m.id}
+                    title={m.note}
+                    className={cx('btn btn-sm justify-center', a.japaneseLabels === m.id && 'btn-system')}
+                    onClick={() => set({ japaneseLabels: m.id })}
+                  >
+                    {m.name}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-4 mt-3 text-[11px] text-muted">
+                <span>Preview</span>
+                <Jp text="門" />
+                <Jp text="日課" />
+                <Jp text="覚醒" />
+              </div>
             </div>
           </Panel>
         </div>

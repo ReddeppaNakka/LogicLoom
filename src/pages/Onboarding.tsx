@@ -5,14 +5,13 @@ import { useApp } from '@/store/useApp'
 import { todayKey, WEEKDAY_SHORT } from '@/lib/dates'
 import type { Lang } from '@/content/types'
 import { LANG_LABEL } from '@/components/CodeTabs'
-import { cx, useJp } from '@/components/ui'
+import { cx, Jp } from '@/components/ui'
 import { totals } from '@/lib/content'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
 export default function Onboarding() {
   const complete = useApp((s) => s.completeOnboarding)
-  const jp = useJp()
   const [step, setStep] = useState(0)
   const [name, setName] = useState('')
   const [lang, setLang] = useState<Lang>('python')
@@ -31,7 +30,7 @@ export default function Onboarding() {
         <AnimatePresence mode="wait">
           {step === 0 && (
             <motion.div key="s0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, filter: 'blur(8px)' }} transition={{ duration: 1.2, ease }} className="text-center max-w-2xl">
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 1, ease }} className="jp text-[13px]" {...jp('覚醒')} />
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 1, ease }}><Jp text="覚醒" size="md" /></motion.div>
               <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6, duration: 1.2, ease }} className="display text-[54px] md:text-[84px] leading-[0.95] mt-4">
                 You have been
                 <br />
@@ -54,7 +53,7 @@ export default function Onboarding() {
 
           {step === 1 && (
             <motion.div key="s1" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, filter: 'blur(8px)' }} transition={{ duration: 0.9, ease }} className="panel panel-system corner system-scan w-[min(640px,100%)] p-8 md:p-10">
-              <div className="jp text-[12px]" {...jp('登録')} />
+              <Jp text="登録" size="md" />
               <div className="eyebrow eyebrow-system mt-1">Hunter registration</div>
               <h2 className="display text-[38px] mt-2">Tell the System who you are.</h2>
 

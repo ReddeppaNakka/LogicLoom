@@ -29,6 +29,8 @@ export type BackgroundId =
 export type MotionLevel = 'full' | 'calm' | 'still'
 export type ReadingSize = 'compact' | 'comfortable' | 'large'
 export type ReadingWidth = 'narrow' | 'medium' | 'wide'
+/** How the decorative Japanese words are shown. */
+export type JapaneseLabels = 'glossed' | 'glyph' | 'hidden'
 
 export interface ThemeDef {
   id: ThemeId
@@ -95,6 +97,12 @@ export const READING_SIZES: { id: ReadingSize; name: string; px: string }[] = [
   { id: 'large', name: 'Large', px: '17px' },
 ]
 
+export const JAPANESE_LABEL_MODES: { id: JapaneseLabels; name: string; note: string }[] = [
+  { id: 'glossed', name: 'With meaning', note: 'The word with its English meaning printed underneath.' },
+  { id: 'glyph', name: 'Word only', note: 'Just the Japanese, with the meaning on hover.' },
+  { id: 'hidden', name: 'Hidden', note: 'Remove them from the interface entirely.' },
+]
+
 export const READING_WIDTHS: { id: ReadingWidth; name: string; value: string }[] = [
   { id: 'narrow', name: 'Narrow', value: '58ch' },
   { id: 'medium', name: 'Medium', value: '68ch' },
@@ -115,8 +123,8 @@ export interface Appearance {
   readingSheet: boolean
   readingSize: ReadingSize
   readingWidth: ReadingWidth
-  /** Show the small decorative Japanese words. Their meaning is always on hover. */
-  japaneseLabels: boolean
+  /** Whether the small Japanese words appear, and whether their meaning is printed under them. */
+  japaneseLabels: JapaneseLabels
 }
 
 export const defaultAppearance: Appearance = {
@@ -129,7 +137,7 @@ export const defaultAppearance: Appearance = {
   readingSheet: true,
   readingSize: 'comfortable',
   readingWidth: 'medium',
-  japaneseLabels: true,
+  japaneseLabels: 'glossed',
 }
 
 export const getTheme = (id: ThemeId) => THEMES.find((t) => t.id === id) ?? THEMES[0]

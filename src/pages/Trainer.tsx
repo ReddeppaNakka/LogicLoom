@@ -4,7 +4,7 @@ import { Gauge, RotateCcw } from 'lucide-react'
 import { complexityQuestions } from '@/content/complexity-quiz'
 import { useApp } from '@/store/useApp'
 import CodeTabs from '@/components/CodeTabs'
-import { SectionTitle, Panel, Eyebrow, Chip, Kanji, cx, difficultyLabel, useJp } from '@/components/ui'
+import { SectionTitle, Panel, Eyebrow, Chip, Kanji, cx, difficultyLabel, Jp } from '@/components/ui'
 import type { Difficulty } from '@/content/types'
 
 const SIZE = 5
@@ -12,7 +12,6 @@ const SIZE = 5
 export default function Trainer() {
   const recordQuiz = useApp((s) => s.recordQuiz)
   const results = useApp((s) => s.quizResults)
-  const jp = useJp()
   const [level, setLevel] = useState<Difficulty | 'mixed'>('mixed')
   const [seed, setSeed] = useState(0)
   const [i, setI] = useState(0)
@@ -65,7 +64,7 @@ export default function Trainer() {
           <AnimatePresence mode="wait">
             {finished ? (
               <motion.div key="done" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-10">
-                <div className="jp text-[12px]" {...jp('完了')} />
+                <Jp text="完了" size="md" />
                 <div className="display text-[48px] text-glow mt-2">
                   {score} / {set.length}
                 </div>
