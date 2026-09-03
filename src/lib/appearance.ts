@@ -115,6 +115,8 @@ export interface Appearance {
   readingSheet: boolean
   readingSize: ReadingSize
   readingWidth: ReadingWidth
+  /** Show the small decorative Japanese words. Their meaning is always on hover. */
+  japaneseLabels: boolean
 }
 
 export const defaultAppearance: Appearance = {
@@ -127,6 +129,7 @@ export const defaultAppearance: Appearance = {
   readingSheet: true,
   readingSize: 'comfortable',
   readingWidth: 'medium',
+  japaneseLabels: true,
 }
 
 export const getTheme = (id: ThemeId) => THEMES.find((t) => t.id === id) ?? THEMES[0]

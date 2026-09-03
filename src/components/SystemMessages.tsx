@@ -2,13 +2,14 @@ import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useApp, type SystemMessage } from '@/store/useApp'
 import { levelFromXp, rankTitle, rankColor } from '@/lib/xp'
-import { RankBadge } from './ui'
+import { RankBadge, useJp } from './ui'
 
 /** Toast stack (bottom-right) for XP / quest events, and a full-screen overlay for level-ups and rank-ups. */
 export default function SystemMessages() {
   const messages = useApp((s) => s.messages)
   const dismiss = useApp((s) => s.dismissMessage)
   const totalXp = useApp((s) => s.totalXp)
+  const jp = useJp()
 
   const toasts = messages.filter((m) => m.kind !== 'levelup' && m.kind !== 'rankup').slice(-3)
   const big = messages.find((m) => m.kind === 'levelup' || m.kind === 'rankup')
@@ -69,7 +70,7 @@ export default function SystemMessages() {
               className="panel panel-system corner system-scan px-10 py-10 text-center w-[min(520px,92vw)]"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="jp text-[12px]">通知</div>
+              <div className="jp text-[12px]" {...jp('通知')} />
               <div className="eyebrow eyebrow-system mt-2">System notification</div>
               <div className="flex justify-center my-6">
                 <RankBadge rank={info.rank} size={96} />

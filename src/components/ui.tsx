@@ -1,8 +1,23 @@
 import type { ReactNode, HTMLAttributes, ButtonHTMLAttributes } from 'react'
 import type { Rank, Difficulty } from '@/content/types'
 import { rankColor, rankTitle } from '@/lib/xp'
+import { glossOf } from '@/lib/kanji'
+import { useApp } from '@/store/useApp'
 
 export const cx = (...parts: Array<string | false | null | undefined>) => parts.filter(Boolean).join(' ')
+
+/**
+ * Props for a decorative Japanese label: the glyph plus a tooltip giving its
+ * reading and English meaning. Returns nothing to render when the reader has
+ * turned the decoration off.
+ *
+ *   const jp = useJp()
+ *   <div className="jp" {...jp('覚醒')} />
+ */
+export function useJp() {
+  const show = useApp((s) => s.appearance.japaneseLabels)
+  return (text: string) => (show ? { title: glossOf(text), children: text } : { children: null })
+}
 
 export function Panel({ className, variant, corner, children, ...rest }: HTMLAttributes<HTMLDivElement> & { variant?: 'system' | 'danger' | 'gold'; corner?: boolean }) {
   return (
@@ -16,8 +31,20 @@ export function Eyebrow({ children, system, className }: { children: ReactNode; 
   return <div className={cx('eyebrow', system && 'eyebrow-system', className)}>{children}</div>
 }
 
+/**
+ * A Japanese decorative label. Hovering shows the reading and the English
+ * meaning; when the reader turns on English labels in Appearance it renders
+ * the English word instead.
+ */
 export function Kanji({ children, className }: { children: ReactNode; className?: string }) {
-  return <span className={cx('jp text-[11px]', className)}>{children}</span>
+  const show = useApp((s) => s.appearance.japaneseLabels)
+  if (!show) return null
+  const raw = typeof children === 'string' ? children : ''
+  return (
+    <span className={cx('jp text-[11px]', className)} title={raw ? glossOf(raw) : undefined}>
+      {children}
+    </span>
+  )
 }
 
 export function Chip({ children, tone, className }: { children: ReactNode; tone?: Difficulty | 'system'; className?: string }) {
@@ -71,9 +98,10 @@ export function SectionTitle({ eyebrow, title, right, kanji }: { eyebrow?: strin
 }
 
 export function Empty({ title, body, action }: { title: string; body?: string; action?: ReactNode }) {
+  const jp = useJp()
   return (
     <div className="text-center py-14 px-6">
-      <div className="jp text-[12px] mb-3">静寂</div>
+      <div className="jp text-[12px] mb-3" {...jp('静寂')} />
       <div className="display text-2xl">{title}</div>
       {body && <p className="text-muted text-sm mt-2 max-w-md mx-auto">{body}</p>}
       {action && <div className="mt-5">{action}</div>}

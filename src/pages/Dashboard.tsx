@@ -9,12 +9,13 @@ import { gates, concepts, problems, getConcept, getGate } from '@/lib/content'
 import { currentConcept, projectPlan, dueReviews } from '@/lib/scheduler'
 import { todayKey, prettyLong, prettyDate, isStudyDay, addDaysKey } from '@/lib/dates'
 import QuestCard from '@/components/QuestCard'
-import { Panel, Eyebrow, Bar, RankBadge, Stat, Kanji, cx } from '@/components/ui'
+import { Panel, Eyebrow, Bar, RankBadge, Stat, Kanji, cx, useJp } from '@/components/ui'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
 export default function Dashboard() {
   const state = useApp()
+  const jp = useJp()
   const today = todayKey()
   const quests = selectToday(state)
   const missed = selectMissed(state)
@@ -147,7 +148,7 @@ export default function Dashboard() {
           </div>
           {quests.length === 0 ? (
             <Panel className="p-8 text-center">
-              <div className="jp text-[12px]">休息</div>
+              <div className="jp text-[12px]" {...jp('休息')} />
               <div className="display text-2xl mt-2">The System lets you rest.</div>
               <p className="text-muted text-sm mt-2">No quests today. Reviews that fall due will still appear here.</p>
               <div className="mt-4 flex justify-center gap-2">

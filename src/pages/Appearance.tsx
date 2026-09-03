@@ -162,6 +162,17 @@ export default function Appearance() {
               </div>
               <Toggle on={a.readingSheet} onChange={(v) => set({ readingSheet: v })} />
             </div>
+            <div className="hairline my-2" />
+            <div className="flex items-center justify-between gap-4 py-2">
+              <div>
+                <div className="text-[14px]">Japanese labels</div>
+                <div className="text-[12px] text-muted">
+                  The small words dotted around the interface, such as 門 (gate) and 日課 (daily routine). Hover any of them
+                  to see its reading and meaning. Turn this off to hide them entirely.
+                </div>
+              </div>
+              <Toggle on={a.japaneseLabels} onChange={(v) => set({ japaneseLabels: v })} />
+            </div>
           </Panel>
         </div>
       </section>

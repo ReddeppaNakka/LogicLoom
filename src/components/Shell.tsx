@@ -7,7 +7,8 @@ import { MotionConfig } from 'framer-motion'
 import AppBackground from './AppBackground'
 import SystemMessages from './SystemMessages'
 import { applyAppearance } from '@/lib/appearance'
-import { Bar, RankBadge, cx } from './ui'
+import { glossOf } from '@/lib/kanji'
+import { Bar, RankBadge, cx, useJp } from './ui'
 
 /**
  * Pages where the eye must stay still: long-form reading, timed practice and
@@ -42,6 +43,7 @@ export default function Shell() {
   const ensureToday = useApp((s) => s.ensureToday)
   const focusMode = useApp((s) => s.focusMode)
   const appearance = useApp((s) => s.appearance)
+  const jp = useJp()
   const [open, setOpen] = useState(false)
   const loc = useLocation()
   const info = levelFromXp(totalXp)
@@ -90,7 +92,7 @@ export default function Shell() {
       >
         <div className="px-5 pt-6 pb-4">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 grid place-items-center rounded-lg border border-[rgb(var(--accent-rgb)/0.45)] bg-[rgb(var(--accent-rgb)/0.08)] text-system text-glow font-jp text-lg">
+            <div className="w-9 h-9 grid place-items-center rounded-lg border border-[rgb(var(--accent-rgb)/0.45)] bg-[rgb(var(--accent-rgb)/0.08)] text-system text-glow font-jp text-lg" title={glossOf('影')}>
               影
             </div>
             <div>
@@ -128,7 +130,7 @@ export default function Shell() {
                 <>
                   <n.icon size={16} className={cx('shrink-0', isActive ? 'text-system' : 'text-muted group-hover:text-bone-dim')} />
                   <span className="flex-1">{n.label}</span>
-                  <span className="jp text-[10px] opacity-60">{n.jp}</span>
+                  <span className="jp text-[10px] opacity-60 shrink-0" {...jp(n.jp)} />
                 </>
               )}
             </NavLink>
@@ -149,7 +151,7 @@ export default function Shell() {
       {/* Top bar for mobile */}
       <header className={cx('md:hidden fixed top-0 inset-x-0 z-30 h-14 flex items-center justify-between px-4 border-b border-[var(--line)] bg-[rgb(var(--bg-rgb)/0.8)] backdrop-blur-xl', calm && focusMode && 'hidden')}>
         <div className="flex items-center gap-2">
-          <span className="font-jp text-system">影</span>
+          <span className="font-jp text-system" title={glossOf('影')}>影</span>
           <span className="display text-lg">The System</span>
         </div>
         <button onClick={() => setOpen((o) => !o)} className="p-2 text-bone-dim">
