@@ -22,14 +22,15 @@
 .stack-ticker:hover .stack-ticker-track { animation-play-state: paused; }
 @keyframes stack-ticker { to { transform: translateX(-50%); } }
 
-/* Constellation edges carry a slow current. */
+/* Constellation edges carry a slow current: the dash pattern repeats every 12px,
+   so 24px in 9s is a gentle drift rather than a flicker. */
 .stack-edge {
   fill: none;
   stroke: rgb(var(--accent-rgb) / 0.28);
   stroke-width: 1.2;
   stroke-dasharray: 3 9;
   stroke-linecap: round;
-  animation: stack-flow 2.4s linear infinite;
+  animation: stack-flow 9s linear infinite;
   transition: stroke 300ms var(--ease-soft), opacity 300ms var(--ease-soft), stroke-width 300ms var(--ease-soft);
 }
 .stack-edge.lit { stroke: var(--accent); stroke-width: 1.8; opacity: 1; filter: drop-shadow(0 0 6px rgb(var(--accent-rgb) / 0.7)); }
@@ -84,14 +85,14 @@
   .sig { width: 60px; height: 60px; }
 }
 .sig-orbit { animation: sig-orbit 9s linear infinite; transform-origin: center; }
-.sig-bounce { animation: sig-bounce 1.6s var(--ease-io) infinite; }
-.sig-pulse { animation: sig-pulse 2.2s ease-in-out infinite; transform-origin: center; }
-.sig-blink { animation: sig-blink 1s steps(1) infinite; }
-.sig-slide { animation: sig-slide 3s ease-in-out infinite alternate; }
-.sig-grow { transform-origin: bottom; animation: sig-grow 2.4s ease-in-out infinite; }
+.sig-bounce { animation: sig-bounce 2.4s var(--ease-io) infinite; }
+.sig-pulse { animation: sig-pulse 3.6s ease-in-out infinite; transform-origin: center; }
+.sig-blink { animation: sig-blink 1.6s steps(1) infinite; }
+.sig-slide { animation: sig-slide 5s ease-in-out infinite alternate; }
+.sig-grow { transform-origin: bottom; animation: sig-grow 4s ease-in-out infinite; }
 .sig-spin3d { animation: sig-spin3d 14s linear infinite; transform-style: preserve-3d; }
-.sig-fade { animation: sig-fade 2.6s ease-in-out infinite; }
-.sig-cascade { animation: sig-cascade 2.4s ease-in infinite; }
+.sig-fade { animation: sig-fade 4.2s ease-in-out infinite; }
+.sig-cascade { animation: sig-cascade 3.8s ease-in infinite; }
 
 /* Spotlight overlay: code lines type themselves in. */
 .stack-spot-code pre { margin: 0; }
@@ -109,7 +110,7 @@
 .stack-stop.current .dot { transform: scale(1.35); }
 
 /* Learning road */
-.stack-road { stroke: rgb(var(--accent-rgb) / 0.35); stroke-width: 2; fill: none; stroke-dasharray: 6 10; animation: stack-flow 3s linear infinite; }
+.stack-road { stroke: rgb(var(--accent-rgb) / 0.35); stroke-width: 2; fill: none; stroke-dasharray: 6 10; animation: stack-flow 12s linear infinite; }
 
 .motion-still .stack-ticker-track, .motion-still .stack-edge, .motion-still .stack-road,
 .motion-still [class*="sig-"] { animation: none !important; }

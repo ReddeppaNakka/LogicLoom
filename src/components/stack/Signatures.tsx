@@ -19,7 +19,7 @@ function SigInner({ id, c, d, cls }: { id: string; c: string; d: string; cls: st
         <svg className={cls} viewBox="0 0 92 92">
           <text x="10" y="40" fontFamily="var(--font-mono)" fontSize="26" fill={c} className="sig-fade">{'{'}</text>
           <text x="30" y="60" fontFamily="var(--font-mono)" fontSize="15" fill={d}>: T</text>
-          <text x="62" y="40" fontFamily="var(--font-mono)" fontSize="26" fill={c} className="sig-fade" style={{ animationDelay: '1.3s' }}>{'}'}</text>
+          <text x="62" y="40" fontFamily="var(--font-mono)" fontSize="26" fill={c} className="sig-fade" style={{ animationDelay: '2.1s' }}>{'}'}</text>
         </svg>
       )
     case 'react':
@@ -53,7 +53,7 @@ function SigInner({ id, c, d, cls }: { id: string; c: string; d: string; cls: st
           <path id="rr-path" d="M10 70 C 30 10, 60 80, 82 22" fill="none" stroke={d} strokeWidth="1.4" strokeDasharray="4 5" />
           <circle cx="10" cy="70" r="5" fill={c} />
           <circle cx="82" cy="22" r="5" fill={c} />
-          <circle r="4" fill="var(--accent-bright)" style={{ offsetPath: 'path("M10 70 C 30 10, 60 80, 82 22")', animation: 'sig-flow-x 2.4s ease-in-out infinite alternate' }} />
+          <circle r="4" fill="var(--accent-bright)" style={{ offsetPath: 'path("M10 70 C 30 10, 60 80, 82 22")', animation: 'sig-flow-x 4s ease-in-out infinite alternate' }} />
         </svg>
       )
     case 'zustand':
@@ -130,7 +130,7 @@ function SigInner({ id, c, d, cls }: { id: string; c: string; d: string; cls: st
       return (
         <svg className={cls} viewBox="0 0 92 92">
           <text x="10" y="46" fontFamily="var(--font-mono)" fontSize="30" fill={c} className="sig-fade">#</text>
-          <text x="36" y="46" fontFamily="var(--font-display)" fontSize="30" fill="var(--fg)" className="sig-fade" style={{ animationDelay: '1.3s' }}>H1</text>
+          <text x="36" y="46" fontFamily="var(--font-display)" fontSize="30" fill="var(--fg)" className="sig-fade" style={{ animationDelay: '2.1s' }}>H1</text>
         </svg>
       )
     case 'date-fns':
