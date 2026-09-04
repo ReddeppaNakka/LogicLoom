@@ -48,11 +48,13 @@ export default function Spotlight({ tech, onClose, onNav }: { tech: Tech | null;
           onClick={onClose}
         >
           <motion.div
-            layoutId={`tile-${tech.id}`}
             onClick={(e) => e.stopPropagation()}
             className="relative w-full max-w-[980px] rounded-3xl border border-[rgb(var(--accent-rgb)/0.35)] overflow-hidden"
             style={{ background: 'linear-gradient(180deg, var(--surface-raised), var(--bg))', boxShadow: '0 60px 140px -50px rgb(0 0 0 / 0.9), 0 0 0 1px rgb(var(--accent-rgb) / 0.08) inset' }}
-            transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+            initial={{ opacity: 0, scale: 0.96, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.98, y: 8 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
           >
             <Body key={tech.id} tech={tech} onClose={onClose} step={step} />
           </motion.div>
@@ -73,26 +75,32 @@ function Body({ tech, onClose, step }: { tech: Tech; onClose: () => void; step: 
   const s = tech.snippets[Math.min(snippet, tech.snippets.length - 1)]
   return (
     <>
-      {/* Header */}
-      <div className="relative px-6 md:px-10 pt-8 pb-6 overflow-hidden" style={{ background: 'radial-gradient(70% 90% at 90% 0%, rgb(var(--accent-rgb) / 0.16), transparent 60%)' }}>
-        <div className="absolute right-6 top-4 opacity-40 scale-[1.6] origin-top-right pointer-events-none">
-          <Signature id={tech.id} />
-        </div>
-        <div className="flex items-center gap-2 mb-3">
-          <span className="mono text-[11px] text-system">{String(tech.order).padStart(2, '0')} / {String(allTech.length).padStart(2, '0')}</span>
-          <span className="chip !text-[10px] !py-0 !px-1.5">{tech.category}</span>
-          <span className="mono text-[10.5px] text-muted">{tech.version}</span>
-        </div>
-        <motion.h2 custom={0} variants={stagger} initial="hidden" animate="show" className="display text-[44px] md:text-[64px] leading-[0.95]">
-          {tech.name}
-        </motion.h2>
-        <motion.p custom={1} variants={stagger} initial="hidden" animate="show" className="text-[15px] text-bone-dim mt-3 max-w-2xl">
-          {tech.role}
-        </motion.p>
-        <div className="absolute right-4 top-4 flex gap-1">
-          <button className="btn btn-xs btn-ghost" onClick={() => step(-1)} aria-label="Previous"><ChevronLeft size={14} /></button>
-          <button className="btn btn-xs btn-ghost" onClick={() => step(1)} aria-label="Next"><ChevronRight size={14} /></button>
-          <button className="btn btn-xs" onClick={onClose} aria-label="Close"><X size={14} /></button>
+      {/* Header: text on the left, controls and illustration in their own column on the right. */}
+      <div className="px-6 md:px-10 pt-6 pb-6" style={{ background: 'radial-gradient(70% 90% at 90% 0%, rgb(var(--accent-rgb) / 0.16), transparent 60%)' }}>
+        <div className="flex items-start gap-6">
+          <div className="min-w-0 flex-1 pt-2">
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <span className="mono text-[11px] text-system">{String(tech.order).padStart(2, '0')} / {String(allTech.length).padStart(2, '0')}</span>
+              <span className="chip !text-[10px] !py-0 !px-1.5">{tech.category}</span>
+              <span className="mono text-[10.5px] text-muted">{tech.version}</span>
+            </div>
+            <motion.h2 custom={0} variants={stagger} initial="hidden" animate="show" className="display text-[40px] md:text-[64px] leading-[0.95] break-words">
+              {tech.name}
+            </motion.h2>
+            <motion.p custom={1} variants={stagger} initial="hidden" animate="show" className="text-[15px] text-bone-dim mt-3 max-w-2xl">
+              {tech.role}
+            </motion.p>
+          </div>
+          <div className="shrink-0 flex flex-col items-end gap-3">
+            <div className="flex gap-1">
+              <button className="btn btn-xs btn-ghost" onClick={() => step(-1)} aria-label="Previous"><ChevronLeft size={14} /></button>
+              <button className="btn btn-xs btn-ghost" onClick={() => step(1)} aria-label="Next"><ChevronRight size={14} /></button>
+              <button className="btn btn-xs" onClick={onClose} aria-label="Close"><X size={14} /></button>
+            </div>
+            <div className="relative w-[112px] h-[112px] opacity-40 hidden md:block pointer-events-none">
+              <Signature id={tech.id} corner="top" />
+            </div>
+          </div>
         </div>
       </div>
 

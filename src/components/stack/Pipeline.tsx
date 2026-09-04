@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Play, Pause, RotateCcw } from 'lucide-react'
 import { OPEN_A_PAGE } from '@/content/stack-overview'
 import { cx } from '@/components/ui'
@@ -53,8 +53,7 @@ export default function Pipeline() {
 
       {/* Stage */}
       <div className="px-6 md:px-10 pb-8 pt-4 min-h-[230px]">
-        <AnimatePresence mode="wait">
-          <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}>
+        <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}>
             <div className="flex items-baseline gap-4 flex-wrap">
               <span className="stack-hero-num !text-[64px] md:!text-[88px]">{String(i + 1).padStart(2, '0')}</span>
               <div className="min-w-0 flex-1">
@@ -68,7 +67,6 @@ export default function Pipeline() {
               </div>
             </div>
           </motion.div>
-        </AnimatePresence>
       </div>
 
       {/* Controls */}

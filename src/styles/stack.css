@@ -76,6 +76,13 @@
 @keyframes sig-cascade { 0% { transform: translateY(0); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(28px); opacity: 0; } }
 
 .sig { position: absolute; right: 18px; bottom: 18px; width: 92px; height: 92px; pointer-events: none; opacity: .85; }
+.sig-top { bottom: auto; top: 14px; right: 14px; }
+.sig-sm { width: 60px; height: 60px; }
+/* A large illustration in a narrow tile is out of proportion and crowds the
+   label, so it steps down to the small size when the tile itself is narrow. */
+@container (max-width: 300px) {
+  .sig { width: 60px; height: 60px; }
+}
 .sig-orbit { animation: sig-orbit 9s linear infinite; transform-origin: center; }
 .sig-bounce { animation: sig-bounce 1.6s var(--ease-io) infinite; }
 .sig-pulse { animation: sig-pulse 2.2s ease-in-out infinite; transform-origin: center; }
