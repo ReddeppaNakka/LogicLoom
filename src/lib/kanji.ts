@@ -32,6 +32,7 @@ export const KANJI: Record<string, KanjiGloss> = {
 
   // Section labels
   学: { reading: 'gaku', en: 'Study' },
+  構造: { reading: 'kouzou', en: 'Structure' },
   日課: { reading: 'nikka', en: 'Daily routine' },
   現在: { reading: 'genzai', en: 'Now' },
   能力: { reading: 'nouryoku', en: 'Ability' },

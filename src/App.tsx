@@ -16,6 +16,7 @@ const Problems = lazy(() => import('./pages/Problems'))
 const Log = lazy(() => import('./pages/Log'))
 const SettingsPage = lazy(() => import('./pages/Settings'))
 const AppearancePage = lazy(() => import('./pages/Appearance'))
+const StackPage = lazy(() => import('./pages/Stack'))
 const Scratchpad = lazy(() => import('./pages/Scratchpad'))
 const Boss = lazy(() => import('./pages/Boss'))
 
@@ -54,6 +55,7 @@ export default function App() {
           <Route path="/log" element={<Log />} />
           <Route path="/scratchpad" element={<Scratchpad />} />
           <Route path="/appearance" element={<AppearancePage />} />
+          <Route path="/stack" element={<StackPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/boss/:questId" element={<Boss />} />
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { LayoutDashboard, Map, Sparkles, CalendarDays, Gauge, ListChecks, NotebookPen, Settings, Code2, Menu, X, Flame, Minimize2, Palette } from 'lucide-react'
+import { LayoutDashboard, Map, Sparkles, CalendarDays, Gauge, ListChecks, NotebookPen, Settings, Code2, Menu, X, Flame, Minimize2, Palette, Layers } from 'lucide-react'
 import { useApp } from '@/store/useApp'
 import { levelFromXp, rankTitle } from '@/lib/xp'
 import { MotionConfig } from 'framer-motion'
@@ -32,6 +32,7 @@ const NAV = [
   { to: '/problems', label: 'Problems', icon: ListChecks, jp: '題' },
   { to: '/log', label: 'Mistake log', icon: NotebookPen, jp: '記' },
   { to: '/scratchpad', label: 'Scratchpad', icon: Code2, jp: '書' },
+  { to: '/stack', label: 'Under the hood', icon: Layers, jp: '構造' },
   { to: '/appearance', label: 'Appearance', icon: Palette, jp: '彩' },
   { to: '/settings', label: 'Settings', icon: Settings, jp: '設' },
 ]

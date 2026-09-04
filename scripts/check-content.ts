@@ -17,6 +17,11 @@ import { patterns as p1 } from '../src/content/patterns/part1'
 import { patterns as p2 } from '../src/content/patterns/part2'
 import { decisionTree, decisionRootId } from '../src/content/decision-tree'
 import { complexityQuestions } from '../src/content/complexity-quiz'
+import { coreTech } from '../src/content/stack-core'
+import { stateTech } from '../src/content/stack-state'
+import { extraTech } from '../src/content/stack-extras'
+import { LAYERS, OPEN_A_PAGE, LEARNING_PATH } from '../src/content/stack-overview'
+import * as fs from 'node:fs'
 
 const concepts = [c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13].flat()
 const patterns = [...p1, ...p2]
@@ -112,7 +117,51 @@ for (const q of complexityQuestions) {
 const withSections = concepts.filter((c) => c.definition && c.visual?.length && c.dryRun && c.quiz?.length).length
 const totalQuiz = concepts.reduce((s, c) => s + (c.quiz?.length ?? 0), 0)
 const totalFrames = concepts.reduce((s, c) => s + (c.visual?.length ?? 0), 0)
+// --- "Under the hood": every documented snippet must really exist in the file
+// --- it cites, otherwise the page teaches something that is not true.
+// Built from char codes so this file stays free of escape sequences that get
+// mangled when the script itself is edited by tooling.
+const CRLF = String.fromCharCode(13, 10)
+const LF = String.fromCharCode(10)
+/** Compare ignoring line-ending style and surrounding blank space. */
+const sameText = (a: string, b: string) => a.split(CRLF).join(LF).trim().includes(b.split(CRLF).join(LF).trim())
+
+const tech = [...coreTech, ...stateTech, ...extraTech]
+const techIds = new Set(tech.map((t) => t.id))
+const seenTech = new Set<string>()
+let snippetCount = 0
+for (const t of tech) {
+  if (seenTech.has(t.id)) errors.push(`duplicate tech id ${t.id}`)
+  seenTech.add(t.id)
+  if (!t.snippets.length) errors.push(`tech ${t.id} has no snippets`)
+  if (t.teaches.length < 3) warns.push(`tech ${t.id} teaches only ${t.teaches.length} ideas`)
+  if (!t.docs.length) errors.push(`tech ${t.id} has no doc links`)
+  for (const sn of t.snippets) {
+    snippetCount++
+    let actual: string
+    try {
+      actual = fs.readFileSync(sn.file, 'utf8')
+    } catch {
+      errors.push(`tech ${t.id}: snippet cites missing file ${sn.file}`)
+      continue
+    }
+    if (!sameText(actual, sn.code)) {
+      errors.push(`tech ${t.id}: snippet no longer matches ${sn.file} — the code changed, update the snippet`)
+    }
+  }
+}
+for (const layer of LAYERS) {
+  for (const id of layer.techIds) if (!techIds.has(id)) errors.push(`stack layer ${layer.id} references unknown tech ${id}`)
+}
+for (const stage of LEARNING_PATH) {
+  for (const id of stage.techIds) if (!techIds.has(id)) errors.push(`learning path "${stage.stage}" references unknown tech ${id}`)
+}
+for (const step of OPEN_A_PAGE) {
+  for (const f of step.files) if (!fs.existsSync(f)) errors.push(`page-load walkthrough cites missing file ${f}`)
+}
+
 console.log(`gates ${gates.length} · concepts ${concepts.length} · patterns ${patterns.length} · problems ${problemIds.size} · drill ${complexityQuestions.length} · tree nodes ${decisionTree.length}`)
+console.log(`stack: ${tech.length} technologies · ${snippetCount} verified code snippets`)
 console.log(`fully sectioned concepts ${withSections}/${concepts.length} · visual frames ${totalFrames} · concept quiz questions ${totalQuiz}`)
 for (const w of warns) console.log('warn:', w)
 for (const e of errors) console.log('ERROR:', e)
