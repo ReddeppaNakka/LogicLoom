@@ -1,0 +1,111 @@
+/* ---------------------------------------------------------------------------
+   "Under the hood" has its own visual language, deliberately unlike the rest of
+   the app: a constellation of nodes, living bento tiles, a spotlight overlay,
+   and a packet racing through the page-load pipeline.
+   --------------------------------------------------------------------------- */
+
+/* Giant display numerals, in the Kage spirit. */
+.stack-hero-num {
+  font-family: var(--font-display);
+  font-size: clamp(96px, 16vw, 200px);
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  background: linear-gradient(180deg, var(--fg) 0%, rgb(var(--fg-rgb) / 0.25) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Ticker of technology names that drifts left forever. */
+.stack-ticker { mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
+.stack-ticker-track { display: flex; gap: 40px; width: max-content; animation: stack-ticker 42s linear infinite; }
+.stack-ticker:hover .stack-ticker-track { animation-play-state: paused; }
+@keyframes stack-ticker { to { transform: translateX(-50%); } }
+
+/* Constellation edges carry a slow current. */
+.stack-edge {
+  fill: none;
+  stroke: rgb(var(--accent-rgb) / 0.28);
+  stroke-width: 1.2;
+  stroke-dasharray: 3 9;
+  stroke-linecap: round;
+  animation: stack-flow 2.4s linear infinite;
+  transition: stroke 300ms var(--ease-soft), opacity 300ms var(--ease-soft), stroke-width 300ms var(--ease-soft);
+}
+.stack-edge.lit { stroke: var(--accent); stroke-width: 1.8; opacity: 1; filter: drop-shadow(0 0 6px rgb(var(--accent-rgb) / 0.7)); }
+.stack-edge.dim { opacity: 0.12; }
+@keyframes stack-flow { to { stroke-dashoffset: -24; } }
+
+.stack-node { cursor: pointer; }
+.stack-node .halo { transition: r 400ms var(--ease-out-expo), opacity 400ms var(--ease-soft); opacity: 0; }
+.stack-node:hover .halo, .stack-node.active .halo { opacity: 1; }
+.stack-node .core { transition: r 300ms var(--ease-out-expo); }
+.stack-node:hover .core { r: 9; }
+.stack-node text { font-family: var(--font-sans); font-size: 12px; fill: var(--fg-dim); transition: fill 300ms; pointer-events: none; }
+.stack-node:hover text, .stack-node.active text { fill: var(--fg); }
+.stack-node .ver { font-family: var(--font-mono); font-size: 9px; fill: var(--fg-muted); }
+
+/* Bento tiles: a faint radial follows the cursor. */
+.stack-tile {
+  position: relative; overflow: hidden; border-radius: 18px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--surface-1), var(--surface-2));
+  transition: border-color 300ms var(--ease-soft), transform 500ms var(--ease-out-expo), box-shadow 500ms var(--ease-out-expo);
+  transform-style: preserve-3d;
+}
+.stack-tile::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: radial-gradient(360px circle at var(--mx, 50%) var(--my, 50%), rgb(var(--accent-rgb) / 0.16), transparent 60%);
+  transition: opacity 400ms var(--ease-soft);
+}
+.stack-tile:hover::before { opacity: 1; }
+.stack-tile:hover { border-color: rgb(var(--accent-rgb) / 0.45); box-shadow: 0 30px 70px -40px rgb(var(--accent-rgb) / 0.55); }
+.stack-tile .display { transition: transform 500ms var(--ease-out-expo); }
+.stack-tile:hover .display { transform: translateY(-2px); }
+
+/* Signature illustrations */
+@keyframes sig-orbit { to { transform: rotate(360deg); } }
+@keyframes sig-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-18px); } }
+@keyframes sig-pulse { 0%, 100% { transform: scale(1); opacity: .6; } 50% { transform: scale(1.35); opacity: 1; } }
+@keyframes sig-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@keyframes sig-slide { 0% { transform: translateX(-30%); } 100% { transform: translateX(30%); } }
+@keyframes sig-grow { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
+@keyframes sig-spin3d { to { transform: rotateX(360deg) rotateY(360deg); } }
+@keyframes sig-flow-x { to { offset-distance: 100%; } }
+@keyframes sig-fade { 0%, 100% { opacity: .2; } 50% { opacity: 1; } }
+@keyframes sig-cascade { 0% { transform: translateY(0); opacity: 0; } 30% { opacity: 1; } 100% { transform: translateY(28px); opacity: 0; } }
+
+.sig { position: absolute; right: 18px; bottom: 18px; width: 92px; height: 92px; pointer-events: none; opacity: .85; }
+.sig-orbit { animation: sig-orbit 9s linear infinite; transform-origin: center; }
+.sig-bounce { animation: sig-bounce 1.6s var(--ease-io) infinite; }
+.sig-pulse { animation: sig-pulse 2.2s ease-in-out infinite; transform-origin: center; }
+.sig-blink { animation: sig-blink 1s steps(1) infinite; }
+.sig-slide { animation: sig-slide 3s ease-in-out infinite alternate; }
+.sig-grow { transform-origin: bottom; animation: sig-grow 2.4s ease-in-out infinite; }
+.sig-spin3d { animation: sig-spin3d 14s linear infinite; transform-style: preserve-3d; }
+.sig-fade { animation: sig-fade 2.6s ease-in-out infinite; }
+.sig-cascade { animation: sig-cascade 2.4s ease-in infinite; }
+
+/* Spotlight overlay: code lines type themselves in. */
+.stack-spot-code pre { margin: 0; }
+.stack-spot-line { display: block; white-space: pre; }
+
+/* Pipeline: a packet running through the stops. */
+.stack-pipe-track { position: relative; height: 2px; background: rgb(var(--fg-rgb) / 0.12); }
+.stack-pipe-fill { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, rgb(var(--accent-rgb) / 0.4), var(--accent)); box-shadow: 0 0 14px rgb(var(--accent-rgb) / 0.6); }
+.stack-packet {
+  position: absolute; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%;
+  background: var(--accent-bright); box-shadow: 0 0 0 4px rgb(var(--accent-rgb) / 0.25), 0 0 22px rgb(var(--accent-rgb) / 0.9);
+}
+.stack-stop { transition: all 400ms var(--ease-out-expo); }
+.stack-stop.reached .dot { background: var(--accent); box-shadow: 0 0 16px rgb(var(--accent-rgb) / 0.7); border-color: var(--accent); }
+.stack-stop.current .dot { transform: scale(1.35); }
+
+/* Learning road */
+.stack-road { stroke: rgb(var(--accent-rgb) / 0.35); stroke-width: 2; fill: none; stroke-dasharray: 6 10; animation: stack-flow 3s linear infinite; }
+
+.motion-still .stack-ticker-track, .motion-still .stack-edge, .motion-still .stack-road,
+.motion-still [class*="sig-"] { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .stack-ticker-track, .stack-edge, .stack-road, [class*="sig-"] { animation: none !important; }
+}
