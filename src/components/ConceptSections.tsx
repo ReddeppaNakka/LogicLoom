@@ -230,7 +230,7 @@ export function ConceptQuiz({ questions }: { questions: QuizQuestion[] }) {
                       disabled={settled}
                       onClick={() => setPicked((p) => ({ ...p, [qi]: oi }))}
                       className={cx(
-                        'btn justify-start text-left whitespace-normal !py-2.5 text-[13px]',
+                        'btn justify-start text-left !whitespace-normal break-words min-w-0 !py-2.5 text-[13px]',
                         settled && isAnswer && '!border-[rgb(var(--good-rgb)/0.6)] !bg-[rgb(var(--good-rgb)/0.12)] !text-jade',
                         settled && isChoice && !isAnswer && '!border-[rgb(var(--warn-rgb)/0.6)] !bg-[rgb(var(--warn-rgb)/0.12)] !text-ember',
                         settled && !isAnswer && !isChoice && 'opacity-50',

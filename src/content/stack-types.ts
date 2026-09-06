@@ -68,3 +68,53 @@ export interface FlowStep {
   detail: string
   files: string[]
 }
+
+// ---------------------------------------------------------------------------
+// The deep study material for one technology. Where `Tech` explains how this
+// app uses a piece, `TechDeep` teaches the piece itself: the ideas underneath,
+// how it works inside, what it looks like in the wild, and a lab to build a
+// miniature of it by hand.
+// ---------------------------------------------------------------------------
+
+import type { VisualFrame, QuizQuestion } from './types'
+
+/** One fundamental idea, with a standalone example that runs on its own. */
+export interface DeepConcept {
+  title: string
+  /** Markdown, 80-200 words. Explain as if to someone who has never seen it. */
+  body: string
+  /** Optional standalone code (not from this repo). */
+  code?: string
+  /** Language label for the code: ts, tsx, css, js, yaml, html, sh, py. */
+  lang?: string
+}
+
+/** One step of the build-it-yourself lab. */
+export interface BuildStep {
+  title: string
+  body: string
+  code: string
+  lang?: string
+}
+
+export interface TechDeep {
+  /** A real-life analogy in 2-4 sentences. */
+  analogy: string
+  /** Markdown. Who made it, when, and the problem it was built to solve. */
+  origins: string
+  /** 5-8 core ideas, in learning order. */
+  concepts: DeepConcept[]
+  /** A frame-by-frame monospace walkthrough of the central mechanism. */
+  visual: { title: string; intro: string; frames: VisualFrame[] }
+  /** Markdown with ## headings. How it works inside, 400-900 words. */
+  internals: string
+  /** A miniature built from scratch in 3-6 steps. */
+  buildIt: { title: string; intro: string; steps: BuildStep[] }
+  /** Real products and teams, and what they use it for. */
+  inTheWild: { who: string; what: string }[]
+  /** Alternatives and when each one is the better pick. */
+  alternatives: { name: string; pick: string }[]
+  glossary: { term: string; meaning: string }[]
+  /** 5-6 questions. */
+  quiz: QuizQuestion[]
+}

@@ -128,7 +128,7 @@ function Wizard() {
                 {node.options.map((o) => (
                   <button
                     key={o.label}
-                    className="btn justify-start text-left whitespace-normal py-3"
+                    className="btn justify-start text-left !whitespace-normal break-words min-w-0 py-3"
                     onClick={() => {
                       if (o.patternId) setResult(o.patternId)
                       else if (o.next) setPath((p) => [...p, o.next!])

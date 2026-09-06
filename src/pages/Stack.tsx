@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion, animate } from 'framer-motion'
-import { allTech, techById } from '@/lib/stack'
+import { allTech, techById, stackTotals } from '@/lib/stack'
 import Constellation from '@/components/stack/Constellation'
 import Bento from '@/components/stack/Bento'
 import Spotlight from '@/components/stack/Spotlight'
@@ -92,9 +92,13 @@ function Hero() {
             <div className="display text-[40px] md:text-[56px] leading-none">{lines.toLocaleString()}</div>
             <div className="eyebrow mt-2">lines of source</div>
           </div>
+          <div className="pb-1 hidden sm:block">
+            <div className="display text-[40px] md:text-[56px] leading-none">{stackTotals.ideas}</div>
+            <div className="eyebrow mt-2">core ideas</div>
+          </div>
         </div>
         <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6, duration: 1 }} className="text-[15px] text-bone-dim leading-relaxed max-w-md md:justify-self-end md:text-right md:pb-2">
-          The app you are reading, taken apart. Every code sample is lifted from this repository with its file path shown, and the build refuses to ship if a sample no longer matches the source.
+          The app you are reading, taken apart. Open any piece for a full study: where it came from, its core ideas with runnable examples, a frame-by-frame look at the mechanism, how it works inside, the real code from this repository, a lab to build a miniature of it, who uses it, and a quiz.
         </motion.p>
       </div>
 

@@ -21,6 +21,7 @@ import { coreTech } from '../src/content/stack-core'
 import { stateTech } from '../src/content/stack-state'
 import { extraTech } from '../src/content/stack-extras'
 import { LAYERS, OPEN_A_PAGE, LEARNING_PATH } from '../src/content/stack-overview'
+import { DEEP } from '../src/content/stack-deep'
 import * as fs from 'node:fs'
 
 const concepts = [c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13].flat()
@@ -150,6 +151,30 @@ for (const t of tech) {
     }
   }
 }
+// --- Deep study material: every technology has one, and it is well formed.
+let deepIdeas = 0, deepFrames = 0, deepQuiz = 0
+for (const t of tech) {
+  const d = DEEP[t.id]
+  if (!d) { errors.push(`tech ${t.id} has no deep study material`); continue }
+  if (d.concepts.length < 5) warns.push(`tech ${t.id} deep: only ${d.concepts.length} core ideas`)
+  if (d.visual.frames.length < 4) warns.push(`tech ${t.id} deep: only ${d.visual.frames.length} visual frames`)
+  if (d.buildIt.steps.length < 3) warns.push(`tech ${t.id} deep: build-it has ${d.buildIt.steps.length} steps`)
+  if (d.quiz.length < 4) warns.push(`tech ${t.id} deep: only ${d.quiz.length} quiz questions`)
+  if (d.inTheWild.length < 3) warns.push(`tech ${t.id} deep: only ${d.inTheWild.length} real-world examples`)
+  if (d.glossary.length < 5) warns.push(`tech ${t.id} deep: only ${d.glossary.length} glossary terms`)
+  if (d.internals.split(/\s+/).length < 300) warns.push(`tech ${t.id} deep: internals is short`)
+  for (const [i, f] of d.visual.frames.entries()) {
+    const long = f.frame.split(LF).filter((l) => l.length > 64)
+    if (long.length) warns.push(`tech ${t.id} deep: frame ${i + 1} has ${long.length} line(s) over 64 chars`)
+  }
+  for (const [i, q] of d.quiz.entries()) {
+    if (q.options.length < 3 || q.options.length > 4) errors.push(`tech ${t.id} deep quiz ${i + 1}: needs 3-4 options`)
+    if (q.answerIndex < 0 || q.answerIndex >= q.options.length) errors.push(`tech ${t.id} deep quiz ${i + 1}: answerIndex out of range`)
+  }
+  deepIdeas += d.concepts.length; deepFrames += d.visual.frames.length; deepQuiz += d.quiz.length
+}
+for (const id of Object.keys(DEEP)) if (!techIds.has(id)) errors.push(`deep material for unknown tech ${id}`)
+
 for (const layer of LAYERS) {
   for (const id of layer.techIds) if (!techIds.has(id)) errors.push(`stack layer ${layer.id} references unknown tech ${id}`)
 }
@@ -162,6 +187,7 @@ for (const step of OPEN_A_PAGE) {
 
 console.log(`gates ${gates.length} · concepts ${concepts.length} · patterns ${patterns.length} · problems ${problemIds.size} · drill ${complexityQuestions.length} · tree nodes ${decisionTree.length}`)
 console.log(`stack: ${tech.length} technologies · ${snippetCount} verified code snippets`)
+console.log(`stack deep: ${deepIdeas} core ideas · ${deepFrames} visual frames · ${deepQuiz} quiz questions`)
 console.log(`fully sectioned concepts ${withSections}/${concepts.length} · visual frames ${totalFrames} · concept quiz questions ${totalQuiz}`)
 for (const w of warns) console.log('warn:', w)
 for (const e of errors) console.log('ERROR:', e)
